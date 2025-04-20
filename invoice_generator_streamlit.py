@@ -17,7 +17,21 @@ st.title("Invoice Generator + Income Tracker")
 st.header("Create New Invoice")
 
 student = st.text_input("Student Name")
-class_type = st.selectbox("Class Type", ["Junior Ballet", "Intermediate Ballet", "Junior Contemporary", "Intermediate Contemporary', "Junior Jazz", "Advanced Jazz", "Junior House & Hip Hop", "Advanced House & Hip Hop", "Junior Waacking & Locking", "Advanced Waacking & Locking", "Private"])
+class_type = st.selectbox("Class Type", [
+    "Junior Ballet",
+    "Intermediate Ballet",
+    "Junior Contemporary",
+    "Intermediate Contemporary",
+    "Junior Jazz",
+    "Advanced Jazz",
+    "Junior House & Hip Hop",
+    "Advanced House & Hip Hop",
+    "Junior Waacking & Locking",
+    "Advanced Waacking & Locking",
+    "Tap Class",
+    "Commercial",
+    "Private"
+])
 age_group = st.selectbox("Age Group", ["Mini (3–6)", "Junior (7–12)", "Teen (13-16)", "Adult"])
 price_chart = {
     "Ballet": {
