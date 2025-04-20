@@ -17,7 +17,40 @@ st.title("Invoice Generator + Income Tracker")
 st.header("Create New Invoice")
 
 student = st.text_input("Student Name")
-class_type = st.selectbox("Class Type", ["Ballet", "Hip Hop", "Contemporary", "Private"])
+class_type = st.selectbox("Class Type", ["Junior Ballet", "Intermediate Ballet", "Junior Contemporary", "Intermediate Contemporary', "Junior Jazz", "Advanced Jazz", "Junior House & Hip Hop", "Advanced House & Hip Hop", "Junior Waacking & Locking", "Advanced Waacking & Locking", "Private"])
+age_group = st.selectbox("Age Group", ["Mini (3–6)", "Junior (7–12)", "Teen (13-16)", "Adult"])
+price_chart = {
+    "Ballet": {
+        "Mini (3–5)": 5,
+        "Junior (7–12)": 5.50,
+        "Teen (13-16)": 6,
+        "Adult": 6.50
+    },
+    "Hip Hop": {
+        "Mini (3–6)": 6,
+        "Junior (7–10)": 7,
+        "Teen (11–16)": 9,
+        "Adult": 10
+    },
+    "Contemporary": {
+        "Teen (11–16)": 9,
+        "Adult": 10
+    },
+    "Private": {
+        "All": 20
+    }
+}
+
+default_rate = price_chart.get(class_type, {}).get(age_group, 0)
+if class_type == "Private":
+    default_rate = price_chart["Private"]["All"]
+
+st.subheader(f"Standard Rate: £{default_rate}")
+manual_override = st.checkbox("Override rate manually?")
+if manual_override:
+    rate = st.number_input("Enter custom rate", min_value=0.0, step=0.5)
+else:
+    rate = default_rate
 classes_attended = st.number_input("Classes Attended", min_value=0)
 rate = st.number_input("Rate per Class", value=15.0)
 notes = st.text_area("Notes (optional)")
