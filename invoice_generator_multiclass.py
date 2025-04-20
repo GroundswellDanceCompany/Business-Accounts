@@ -26,22 +26,22 @@ selected_classes = st.multiselect("Select Classes", [
     "Tap Class", "Commercial", "Private"
 ])
 
-age_group = st.selectbox("Age Group", ["Mini (3–6)", "Junior (7–10)", "Teen (11–16)", "Adult"])
+age_group = st.selectbox("Age Group", ["Mini (3–5)", "Junior (6-12)", "Teen (13-16)", "Adult"])
 
 # Price chart
 price_chart = {
-    "Junior Ballet": {"Mini (3–6)": 6, "Junior (7–10)": 7, "Teen (11–16)": 8, "Adult": 9},
-    "Intermediate Ballet": {"Junior (7–10)": 8, "Teen (11–16)": 9, "Adult": 10},
-    "Junior Contemporary": {"Junior (7–10)": 7, "Teen (11–16)": 8},
-    "Intermediate Contemporary": {"Teen (11–16)": 9, "Adult": 10},
-    "Junior Jazz": {"Junior (7–10)": 7, "Teen (11–16)": 8},
-    "Advanced Jazz": {"Teen (11–16)": 9, "Adult": 10},
-    "Junior House & Hip Hop": {"Junior (7–10)": 7, "Teen (11–16)": 8},
-    "Advanced House & Hip Hop": {"Teen (11–16)": 9, "Adult": 10},
-    "Junior Waacking & Locking": {"Junior (7–10)": 7, "Teen (11–16)": 8},
-    "Advanced Waacking & Locking": {"Teen (11–16)": 9, "Adult": 10},
-    "Tap Class": {"Junior (7–10)": 7, "Teen (11–16)": 8, "Adult": 9},
-    "Commercial": {"Teen (11–16)": 8, "Adult": 10},
+    "Junior Ballet": {"Mini (3–5)": 5, "Junior (6-12)": 6.50, "Teen (13-16)": 6, "Adult": 6.50},
+    "Intermediate Ballet": {"Junior (6-12)": 6.50, "Teen (13-16)": 6, "Adult": 6.50},
+    "Junior Contemporary": {"Junior (6-12)": 6.50, "Teen (13-16)": 6, "Adult": 6.50},
+    "Intermediate Contemporary": {"Junior (6-12)": 6.50, "Teen (13-16)": 6, "Adult": 6.50},
+    "Junior Jazz": {"Junior (6-12)": 6.50, "Teen (13-16)": 6, "Adult": 6.50},
+    "Advanced Jazz": {"Junior (6-12)": 6.50, "Teen (13-16)": 6, "Adult": 6.50},
+    "Junior House & Hip Hop": {"Junior (6-12)": 6.50, "Teen (13-16)": 6, "Adult": 6.50},
+    "Advanced House & Hip Hop": {"Junior (6-12)": 6.50, "Teen (13-16)": 6, "Adult": 6.50},
+    "Junior Waacking & Locking": {"Junior (6-12)": 6.50, "Teen (13-16)": 6, "Adult": 6.50},
+    "Advanced Waacking & Locking": {"Junior (6-12)": 6.50, "Teen (13-16)": 6, "Adult": 6.50},
+    "Tap Class": {"Junior (6-12)": 6.50, "Teen (13-16)": 6, "Adult": 6.50},
+    "Commercial": {"Junior (6-12)": 6.50, "Teen (13-16)": 6, "Adult": 6.50},
     "Private": {"All": 20}
 }
 
