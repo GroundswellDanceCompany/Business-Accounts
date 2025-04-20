@@ -34,25 +34,40 @@ class_type = st.selectbox("Class Type", [
 ])
 age_group = st.selectbox("Age Group", ["Mini (3–6)", "Junior (7–12)", "Teen (13-16)", "Adult"])
 price_chart = {
-    "Ballet": {
+    "Junior Ballet": {
         "Mini (3–5)": 5,
         "Junior (7–12)": 5.50,
         "Teen (13-16)": 6,
         "Adult": 6.50
     },
-    "Hip Hop": {
-        "Mini (3–6)": 6,
-        "Junior (7–10)": 7,
-        "Teen (11–16)": 9,
-        "Adult": 10
+     "Junior Jazz": {
+        "Mini (3–5)": 5,
+        "Junior (7–12)": 5.50,
+        "Teen (13-16)": 6,
+        "Adult": 6.50
+     },
+    "Junior Contemporary": {
+        "Mini (3–5)": 5,
+        "Junior (7–12)": 5.50,
+        "Teen (13-16)": 6,
+        "Adult": 6.50
     },
+    "Junior House & Hip Hop": {
+        "Mini (3–5)": 5,
+        "Junior (6-12)": 5.50,
+        "Teen (13-16)": 6,
+        "Adult": 6.50
+    },
+     "Junior Waacking & Locking": {
+        "Mini (3–5)": 5,
+        "Junior (7–12)": 5.50,
+        "Teen (13-16)": 6,
+        "Adult": 6.50
+    }
     "Contemporary": {
         "Teen (11–16)": 9,
         "Adult": 10
     },
-    "Private": {
-        "All": 20
-    }
 }
 
 default_rate = price_chart.get(class_type, {}).get(age_group, 0)
@@ -67,7 +82,6 @@ else:
     rate = default_rate
     
 classes_attended = st.number_input("Classes Attended", min_value=0)
-rate = st.number_input("Rate per Class", value=15.0)
 notes = st.text_area("Notes (optional)")
 
 if st.button("Generate Invoice"):
