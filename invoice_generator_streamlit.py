@@ -8,7 +8,7 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 creds_dict = st.secrets["gcp_service_account"]
 creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
-sheet = client.open("Dance_Students_Invoice").worksheet("invoices")
+sheet = client.open("Groundswell-Business").worksheet("invoices")
 
 # UI
 st.title("Invoice Generator + Income Tracker")
