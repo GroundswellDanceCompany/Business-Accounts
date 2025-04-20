@@ -40,12 +40,12 @@ price_chart = {
         "Teen (13-16)": 6,
         "Adult": 6.50
     },
-     "Junior Jazz": {
+    "Junior Jazz": {
         "Mini (3–5)": 5,
         "Junior (7–12)": 5.50,
         "Teen (13-16)": 6,
         "Adult": 6.50
-     },
+    },
     "Junior Contemporary": {
         "Mini (3–5)": 5,
         "Junior (7–12)": 5.50,
@@ -58,7 +58,7 @@ price_chart = {
         "Teen (13-16)": 6,
         "Adult": 6.50
     },
-     "Junior Waacking & Locking": {
+    "Junior Waacking & Locking": {
         "Mini (3–5)": 5,
         "Junior (7–12)": 5.50,
         "Teen (13-16)": 6,
