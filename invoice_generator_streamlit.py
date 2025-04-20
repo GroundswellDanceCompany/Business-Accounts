@@ -51,6 +51,7 @@ if manual_override:
     rate = st.number_input("Enter custom rate", min_value=0.0, step=0.5)
 else:
     rate = default_rate
+    
 classes_attended = st.number_input("Classes Attended", min_value=0)
 rate = st.number_input("Rate per Class", value=15.0)
 notes = st.text_area("Notes (optional)")
