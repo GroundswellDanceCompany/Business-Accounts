@@ -81,7 +81,7 @@ available_extras = {
         "Team Training-Youth Jazz",
         "Team Training-Junior Contemporary",
         "Team Training-Junior Jazz"
-    ]   
+    ],   
     "Session-Based": [
         "Extra Rehearsal - Competition",
         "Extra Rehearsal - Show",
