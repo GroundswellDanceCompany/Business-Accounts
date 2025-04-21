@@ -72,41 +72,67 @@ if manual_override:
 classes_attended = st.number_input("Total number of classes attended (combined)", min_value=0)
 
 # Predefined extras
-available_extras = [
-    "Team Training-GFoundation",
-    "Team Training-GSD Youth",
-    "Team Training-Jenga",
-    "Team Training-Youth Contemporary",
-    "Team Training-Youth Jazz",
-    "Team Training-Junior Contemporary",
-    "Team Training-Junior Jazz",
-    "Extra Rehearsal",
-    "Private Lesson",
-    "Uniform Fee",
-    "Costume Fee",
-    "Workshop Fee",
-    "Exam Entry",
-    "Competition Fee"
-    
-]
+available_extras = {
+    "Subscription": [
+        "Team Training-GFoundation",
+        "Team Training-GSD Youth",
+        "Team Training-Jenga",
+        "Team Training-Youth Contemporary",
+        "Team Training-Youth Jazz",
+        "Team Training-Junior Contemporary",
+        "Team Training-Junior Jazz"
+        
+    "Session-Based": [
+        "Extra Rehearsal - Competition",
+        "Extra Rehearsal - Show",
+        "Private Lesson"],
+        
+    "One-Off": [
+        "Costume Fee", 
+        "Uniform Fee", 
+        "Exam Entry", 
+        "Competition Fee"]
+}
 
-# Manage extras using session_state
+# Flatten all extras for selection
+all_extras = [item for sublist in available_extras.values() for item in sublist]
+
+# Manage structured extras with session_state
 if "extras" not in st.session_state:
     st.session_state.extras = []
 
-st.subheader("Extras (with Dates)")
+st.subheader("Extras")
 with st.form("add_extra_form", clear_on_submit=True):
-    extra_name = st.selectbox("Choose Extra Type", available_extras)
-    extra_amount = st.number_input("Amount", min_value=0.0, step=0.5)
-    extra_date = st.date_input("Date of Extra", value=date.today())
-    submit_extra = st.form_submit_button("Add Extra")
-    if submit_extra and extra_name and extra_amount > 0:
-        st.session_state.extras.append((extra_name, extra_amount, extra_date))
+    extra_name = st.selectbox("Choose Extra", all_extras)
+    extra_type = None
+    for typ, items in available_extras.items():
+        if extra_name in items:
+            extra_type = typ
+            break
 
+    extra_amount = st.number_input("Amount", min_value=0.0, step=0.5)
+    extra_date = None
+    if extra_type == "Session-Based":
+        extra_date = st.date_input("Date of Session", value=date.today())
+
+    submit_extra = st.form_submit_button("Add Extra")
+
+    if submit_extra and extra_name and extra_amount > 0:
+        st.session_state.extras.append({
+            "name": extra_name,
+            "type": extra_type,
+            "amount": extra_amount,
+            "date": str(extra_date) if extra_date else ""
+        })
+
+# Display added extras
 if st.session_state.extras:
     st.write("**Added Extras:**")
-    for i, (name, amt, dt) in enumerate(st.session_state.extras):
-        st.write(f"{i+1}. {name} ({dt}): £{amt:.2f}")
+    for i, ex in enumerate(st.session_state.extras):
+        desc = f"{ex['name']} ({ex['type']})"
+        if ex['type'] == "Session-Based" and ex['date']:
+            desc += f" on {ex['date']}"
+        st.write(f"{i+1}. {desc}: Â£{ex['amount']:.2f}")
 
 # Notes
 notes = st.text_area("Notes (optional)")
