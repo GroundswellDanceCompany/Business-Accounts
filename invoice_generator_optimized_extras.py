@@ -23,7 +23,7 @@ selected_classes = st.multiselect("Select Classes", [
     "Junior Jazz", "Advanced Jazz",
     "Junior House & Hip Hop", "Advanced House & Hip Hop",
     "Junior Waacking & Locking", "Advanced Waacking & Locking",
-    "Tap Class", "Commercial", "Private"
+    "Tap Class", "Commercial", "Open House Class"
 ])
 
 age_group = st.selectbox("Age Group", ["Mini (3-5)", "Junior (6-12)", "Teen (13-16)", "Adult"])
@@ -42,7 +42,8 @@ price_chart = {
     "Advanced Waacking & Locking": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
     "Tap Class": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
     "Commercial": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
-    "Private": {"All": 20}
+    "Open House Class": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
+    
 }
 
 # Calculate class rates
@@ -68,12 +69,21 @@ classes_attended = st.number_input("Total number of classes attended (combined)"
 
 # Predefined extras
 available_extras = [
-    "Team Training",
+    "Team Training-GFoundation",
+    "Team Training-GSD Youth",
+    "Team Training-Jenga",
+    "Team Training-Youth Contemporary",
+    "Team Training-Youth Jazz",
+    "Team Training-Junior Contemporary",
+    "Team Training-Junior Jazz",
     "Extra Rehearsal",
+    "Private Lesson",
+    "Uniform Fee",
     "Costume Fee",
     "Workshop Fee",
     "Exam Entry",
     "Competition Fee"
+    
 ]
 
 # Manage extras using session_state
