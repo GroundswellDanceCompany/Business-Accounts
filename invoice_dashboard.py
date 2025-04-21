@@ -21,7 +21,7 @@ def load_data():
 df = load_data()
 
 # Parse dates
-df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
 df["Amount"] = pd.to_numeric(df["Grand Total"], errors="coerce")
 df["Status"] = df["Status"].fillna("Unpaid")
 
