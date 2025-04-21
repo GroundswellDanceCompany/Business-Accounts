@@ -71,4 +71,4 @@ with st.expander("See Filtered Invoice Data"):
     st.dataframe(filtered_df)
 
 # CSV export
-st.download_button("Download Filtered Data as CSV", data=filtered_df.to_csv(index=False), file_name="invoices_filtered.csv", mime="text/csv")
+st.download_button("Download Filtered Data as CSV", data=filtered_df.to_csv(index=False), file_name="invoices_filtered.csv", mime="text
