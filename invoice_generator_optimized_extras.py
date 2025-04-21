@@ -35,13 +35,13 @@ price_chart = {
     "Junior Contemporary": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
     "Intermediate Contemporary": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
     "Junior Jazz": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
-    "Advanced Jazz": {"Junior (6-12)": 5.50 "Teen (13-16)": 6, "Adult": 6.50},
+    "Advanced Jazz": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
     "Junior House & Hip Hop": {"Junior (6-12)": 5.50, "Teen (13-16)": 6},
-    "Advanced House & Hip Hop": {"Junior (6-12)": 5.50 "Teen (13-16)": 6, "Adult": 6.50},
+    "Advanced House & Hip Hop": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
     "Junior Waacking & Locking": {"Junior (6-12)": 5.50, "Teen (13-16)": 6},
-    "Advanced Waacking & Locking": {"Junior (6-12)": 5.50 "Teen (13-16)": 6, "Adult": 6.50},
+    "Advanced Waacking & Locking": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
     "Tap Class": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
-    "Commercial": {"Junior (6-12)": 5.50 "Teen (13-16)": 6, "Adult": 6.50},
+    "Commercial": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
     "Private": {"All": 20}
 }
 
