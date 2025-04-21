@@ -133,7 +133,7 @@ if st.session_state.extras:
         desc = f"{ex['name']} ({ex['type']})"
         if ex['type'] == "Session-Based" and ex['date']:
             desc += f" on {ex['date']}"
-        st.write(f"{i+1}. {desc}: Â£{ex['amount']:.2f}")
+        st.write(f"{i+1}. {desc}: £{ex['amount']:.2f}")
 
 # Notes
 notes = st.text_area("Notes (optional)")
