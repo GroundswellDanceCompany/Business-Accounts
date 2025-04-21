@@ -53,13 +53,13 @@ col3.metric("Unpaid", f"Â£{filtered_df[filtered_df['Status'] == 'Unpaid']['Gra
 
 # Totals by student
 st.subheader("Total by Student")
-student_summary = filtered_df.groupby("Student")["Grand Total"].sum().reset_index().sort_values(by="Grand Total", ascending=False)
+student_summary = filtered_df.groupby("Student")["Grand total"].sum().reset_index().sort_values(by="Grand total", ascending=False)
 st.dataframe(student_summary)
 
 # Monthly trend
 st.subheader("Monthly Invoice Trend")
 monthly = filtered_df.groupby(filtered_df["Date created"].dt.to_period("M"))["Grand total"].sum().reset_index()
-monthly["Date"] = monthly["Date cteayed"].astype(str)
+monthly["Date"] = monthly["Date created"].astype(str)
 st.line_chart(monthly.set_index("Date"))
 
 # Status breakdown
