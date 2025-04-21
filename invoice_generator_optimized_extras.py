@@ -66,13 +66,23 @@ if manual_override:
 
 classes_attended = st.number_input("Total number of classes attended (combined)", min_value=0)
 
+# Predefined extras
+available_extras = [
+    "Team Training",
+    "Extra Rehearsal",
+    "Costume Fee",
+    "Workshop Fee",
+    "Exam Entry",
+    "Competition Fee"
+]
+
 # Manage extras using session_state
 if "extras" not in st.session_state:
     st.session_state.extras = []
 
-st.subheader("Extras (e.g., Team Training, Rehearsals)")
+st.subheader("Extras (Predefined Selection)")
 with st.form("add_extra_form", clear_on_submit=True):
-    extra_name = st.text_input("Extra Name")
+    extra_name = st.selectbox("Choose Extra Type", available_extras)
     extra_amount = st.number_input("Amount", min_value=0.0, step=0.5)
     submit_extra = st.form_submit_button("Add Extra")
     if submit_extra and extra_name and extra_amount > 0:
@@ -81,7 +91,7 @@ with st.form("add_extra_form", clear_on_submit=True):
 if st.session_state.extras:
     st.write("**Added Extras:**")
     for i, (name, amt) in enumerate(st.session_state.extras):
-        st.write(f"{i+1}. {name} - £{amt:.2f}")
+        st.write(f"{i+1}. {name} - Â£{amt:.2f}")
 
 # Notes
 notes = st.text_area("Notes (optional)")
