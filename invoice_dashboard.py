@@ -47,9 +47,9 @@ filtered_df = df[
 
 # KPI summary
 col1, col2, col3 = st.columns(3)
-col1.metric("Total Invoiced", f"Â£{filtered_df['Grand total'].sum():.2f}")
-col2.metric("Paid", f"Â£{filtered_df[filtered_df['Status'] == 'Paid']['Grand total'].sum():.2f}")
-col3.metric("Unpaid", f"Â£{filtered_df[filtered_df['Status'] == 'Unpaid']['Grand total'].sum():.2f}")
+col1.metric("Total Invoiced", f"£{filtered_df['Grand total'].sum():.2f}")
+col2.metric("Paid", f"£{filtered_df[filtered_df['Status'] == 'Paid']['Grand total'].sum():.2f}")
+col3.metric("Unpaid", f"£{filtered_df[filtered_df['Status'] == 'Unpaid']['Grand total'].sum():.2f}")
 
 # Totals by student
 st.subheader("Total by Student")
