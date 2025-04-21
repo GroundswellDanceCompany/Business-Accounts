@@ -21,8 +21,8 @@ def load_data():
 df = load_data()
 
 # Parse data
-df["Date Created"] = pd.to_datetime(df["Date Created"], errors="coerce")
-df["Grand Total"] = pd.to_numeric(df["Grand Total"], errors="coerce")
+df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
+df["Grand total"] = pd.to_numeric(df["Grand total"], errors="coerce")
 df["Status"] = df["Status"].fillna("Unpaid")
 
 st.title("Dance School Invoice Dashboard")
@@ -33,23 +33,23 @@ with st.sidebar:
     selected_status = st.multiselect("Payment Status", options=df["Status"].unique(), default=df["Status"].unique())
     students = df["Student"].unique().tolist()
     selected_students = st.multiselect("Students", options=students, default=students)
-    min_date = df["Date Created"].min()
-    max_date = df["Date Created"].max()
+    min_date = df["Date created"].min()
+    max_date = df["Date created"].max()
     selected_range = st.date_input("Date Range", value=(min_date, max_date))
 
 # Apply filters
 filtered_df = df[
     (df["Status"].isin(selected_status)) &
     (df["Student"].isin(selected_students)) &
-    (df["Date Created"] >= pd.to_datetime(selected_range[0])) &
-    (df["Date Created"] <= pd.to_datetime(selected_range[1]))
+    (df["Date created"] >= pd.to_datetime(selected_range[0])) &
+    (df["Date created"] <= pd.to_datetime(selected_range[1]))
 ]
 
 # KPI summary
 col1, col2, col3 = st.columns(3)
-col1.metric("Total Invoiced", f"Â£{filtered_df['Grand Total'].sum():.2f}")
-col2.metric("Paid", f"Â£{filtered_df[filtered_df['Status'] == 'Paid']['Grand Total'].sum():.2f}")
-col3.metric("Unpaid", f"Â£{filtered_df[filtered_df['Status'] == 'Unpaid']['Grand Total'].sum():.2f}")
+col1.metric("Total Invoiced", f"Â£{filtered_df['Grand total'].sum():.2f}")
+col2.metric("Paid", f"Â£{filtered_df[filtered_df['Status'] == 'Paid']['Grand total'].sum():.2f}")
+col3.metric("Unpaid", f"Â£{filtered_df[filtered_df['Status'] == 'Unpaid']['Grand total'].sum():.2f}")
 
 # Totals by student
 st.subheader("Total by Student")
@@ -58,8 +58,8 @@ st.dataframe(student_summary)
 
 # Monthly trend
 st.subheader("Monthly Invoice Trend")
-monthly = filtered_df.groupby(filtered_df["Date Created"].dt.to_period("M"))["Grand Total"].sum().reset_index()
-monthly["Date"] = monthly["Date Created"].astype(str)
+monthly = filtered_df.groupby(filtered_df["Date created"].dt.to_period("M"))["Grand total"].sum().reset_index()
+monthly["Date"] = monthly["Date cteayed"].astype(str)
 st.line_chart(monthly.set_index("Date"))
 
 # Status breakdown
