@@ -81,17 +81,18 @@ available_extras = {
         "Team Training-Youth Jazz",
         "Team Training-Junior Contemporary",
         "Team Training-Junior Jazz"
-        
+    ]   
     "Session-Based": [
         "Extra Rehearsal - Competition",
         "Extra Rehearsal - Show",
-        "Private Lesson"],
-        
+        "Private Lesson"
+    ],    
     "One-Off": [
         "Costume Fee", 
         "Uniform Fee", 
         "Exam Entry", 
-        "Competition Fee"]
+        "Competition Fee"
+    ]
 }
 
 # Flatten all extras for selection
