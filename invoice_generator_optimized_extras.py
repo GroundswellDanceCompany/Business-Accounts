@@ -26,7 +26,7 @@ selected_classes = st.multiselect("Select Classes", [
     "Tap Class", "Commercial", "Private"
 ])
 
-age_group = st.selectbox("Age Group", ["Mini (3–5)", "Junior (6-12)", "Teen (13-16)", "Adult"])
+age_group = st.selectbox("Age Group", ["Mini (3-5)", "Junior (6-12)", "Teen (13-16)", "Adult"])
 
 # Price chart
 price_chart = {
