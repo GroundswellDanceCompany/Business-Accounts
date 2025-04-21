@@ -12,7 +12,7 @@ client = gspread.authorize(creds)
 sheet = client.open("Groundswell-Business").worksheet("invoices")
 
 # UI
-st.title("Invoice Generator + Income Tracker (Multi-Class)")
+st.title("Invoice Generator with Classes + Extras")
 
 st.header("Create New Invoice")
 student = st.text_input("Student Name")
@@ -67,6 +67,19 @@ if manual_override:
 
 # Total classes attended
 classes_attended = st.number_input("Total number of classes attended (combined)", min_value=0)
+
+# Extras section
+extras = []
+if st.checkbox("Add Extras (e.g., Rehearsals, Team Training)"):
+    extra_count = st.number_input("How many extras?", min_value=1, step=1)
+    for i in range(extra_count):
+        col1, col2 = st.columns(2)
+        with col1:
+            name = st.text_input(f"Extra #{i+1} Name", key=f"extra_name_{i}")
+        with col2:
+            amount = st.number_input(f"Amount for Extra #{i+1}", min_value=0.0, step=0.5, key=f"extra_amt_{i}")
+        if name and amount:
+            extras.append((name, amount))
 
 # Notes
 notes = st.text_area("Notes (optional)")
