@@ -141,13 +141,18 @@ notes = st.text_area("Notes (optional)")
 if st.button("Generate Invoice"):
     total_class_rate = sum(rate for _, rate in rates)
     class_total = classes_attended * total_class_rate
-    extras_total = sum(amount for _, amount, _ in st.session_state.extras)
+    extras_total = sum(extra["amount"] for extra in st.session_state.extras)
     grand_total = class_total + extras_total
 
     invoice_period = f"{invoice_start} to {invoice_end}"
     date_created = datetime.now().strftime("%Y-%m-%d")
     class_names = ", ".join(cls for cls, _ in rates)
-    extra_names = ", ".join(f"{name} ({dt}): £{amount}" for name, amount, dt in st.session_state.extras)
+    extra_names = ", ".join(
+    f"{ex['name']} ({ex['type']}" +
+    (f" on {ex['date']}" if ex['type'] == "Session-Based" and ex['date'] else "") +
+    f"): £{ex['amount']:.2f}"
+    for ex in st.session_state.extras
+)
 
     row = [date_created, invoice_period, student, class_names, classes_attended, total_class_rate, extra_names, extras_total, grand_total, "Unpaid", notes]
     sheet.append_row(row)
