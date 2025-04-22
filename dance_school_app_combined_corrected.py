@@ -199,7 +199,7 @@ elif selection == "Dashboard":
     sheet = client.open("Groundswell-Business").worksheet("invoices")
     
     # Load data
-    @st.cache_data(ttl=60)
+
     def load_data():
         data = sheet.get_all_records()
         return pd.DataFrame(data)
