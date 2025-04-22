@@ -1,9 +1,5 @@
 import streamlit as st
 
-# Compatibility patch for rerun (supports both old and new versions of Streamlit)
-if not hasattr(st, "rerun") and hasattr(st, "experimental_rerun"):
-    st.rerun = st.experimental_rerun
-
 st.set_page_config(page_title="Dance School OS", layout="wide")
 
 tabs = ["Invoice Generator", "Dashboard", "Student Manager"]
@@ -310,6 +306,10 @@ elif selection == "Student Manager":
     import streamlit as st
     import gspread
     from oauth2client.service_account import ServiceAccountCredentials
+
+    # Compatibility patch for rerun (supports both old and new versions of Streamlit)
+    if not hasattr(st, "rerun") and hasattr(st, "experimental_rerun"):
+    st.rerun = st.experimental_rerun
 
     if "refresh_students" in st.session_state and st.session_state.refresh_students:
         st.session_state.refresh_students = False
