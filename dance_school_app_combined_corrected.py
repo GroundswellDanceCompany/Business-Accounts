@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Dance School OS", layout="wide")
 
-tabs = ["Invoice Generator", "Dashboard"]
+tabs = ["Invoice Generator", "Dashboard", "Student Manager"]
 selection = st.sidebar.radio("Choose View", tabs)
 
 if selection == "Invoice Generator":
@@ -301,3 +301,54 @@ elif selection == "Dashboard":
 
     # CSV export
     st.download_button("Download Filtered Data as CSV", data=filtered_df.to_csv(index=False), file_name="invoices_filtered.csv", mime="text/csv")
+
+elif selection == "Student Manager":
+    import streamlit as st
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+
+    st.header("Student & Class Management")
+
+    # Setup Google Sheets connection (reuses existing streamlit secrets)
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds_dict = st.secrets["gcp_service_account"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    client = gspread.authorize(creds)
+
+    students_sheet = client.open("Groundswell-Business").worksheet("students")
+    classes_sheet = client.open("Groundswell-Business").worksheet("class_enrollments")
+
+    # Load student list
+    students_data = students_sheet.get_all_records()
+    student_names = [s["Name"] for s in students_data]
+
+    st.subheader("Add / Edit Student")
+    with st.form("student_form", clear_on_submit=True):
+        name = st.text_input("Name")
+        age_group = st.selectbox("Age Group", ["Mini (3-5)", "Junior (6-12)", "Teen (13-16)", "Adult"])
+        contact = st.text_input("Contact Info")
+        notes = st.text_area("Notes (optional)")
+        submit = st.form_submit_button("Save Student")
+
+        if submit and name:
+            students_sheet.append_row([name, age_group, contact, notes])
+            st.success(f"Student '{name}' added successfully!")
+
+    st.divider()
+
+    st.subheader("Assign Student to Class")
+    with st.form("class_assign_form", clear_on_submit=True):
+        student = st.selectbox("Select Student", options=student_names)
+        class_name = st.selectbox("Select Class", [
+            "Junior Ballet", "Intermediate Ballet",
+            "Junior Contemporary", "Intermediate Contemporary",
+            "Junior Jazz", "Advanced Jazz",
+            "Junior House & Hip Hop", "Advanced House & Hip Hop",
+            "Junior Waacking & Locking", "Advanced Waacking & Locking",
+            "Tap Class", "Commercial", "Private"
+        ])
+        enroll = st.form_submit_button("Assign to Class")
+
+        if enroll and student:
+            classes_sheet.append_row([student, class_name, "Enrolled"])
+            st.success(f"{student} assigned to {class_name}")
