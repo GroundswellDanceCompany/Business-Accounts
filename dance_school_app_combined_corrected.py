@@ -365,3 +365,23 @@ elif selection == "Student Manager":
             for cls in selected_classes:
                 classes_sheet.append_row([student, cls, age_group, "Enrolled"])
             st.success(f"{student} assigned to: {', '.join(selected_classes)}")
+
+st.divider()
+st.subheader("View Class Rosters")
+
+# Load the roster data from Google Sheet
+roster_data = classes_sheet.get_all_records()
+df_roster = pd.DataFrame(roster_data)
+
+available_classes = df_roster["Class"].unique().tolist()
+
+selected_roster_class = st.selectbox("Select a Class to View", available_classes)
+
+# Filter and display students enrolled in the selected class
+filtered_roster = df_roster[df_roster["Class"] == selected_roster_class]
+
+if not filtered_roster.empty:
+    st.write(f"### Students Enrolled in {selected_roster_class}")
+    st.dataframe(filtered_roster[["Student", "Age group", "Status"]])
+else:
+    st.info("No students found for this class.")
