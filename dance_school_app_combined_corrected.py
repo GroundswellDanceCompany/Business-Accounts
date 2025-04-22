@@ -307,10 +307,14 @@ elif selection == "Student Manager":
     import gspread
     from oauth2client.service_account import ServiceAccountCredentials
 
-    if st.session_state.get("refresh_students"):
+    if "refresh_students" in st.session_state and st.session_state.refresh_students:
         st.session_state.refresh_students = False
         st.experimental_rerun()
 
+    if "refresh_enrollment" in st.session_state and st.session_state.refresh_enrollment:
+        st.session_state.refresh_enrollment = False
+        st.experimental_rerun()
+        
     st.header("Student & Class Management")
 
     # Setup Google Sheets connection (reuses existing streamlit secrets)
