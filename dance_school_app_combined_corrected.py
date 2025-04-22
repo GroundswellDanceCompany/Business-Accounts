@@ -231,11 +231,11 @@ elif selection == "Dashboard":
     
     # Apply filters
     filtered_df = df[
-        (df["Status"].isin(selected_status)) &
-        (df["Student"].isin(selected_students)) &
-        (df["Date created"] >= pd.to_datetime(selected_range[0])) &
-        (df["Date created"] <= pd.to_datetime(selected_range[1]))
-    ]
+    (df["Status"].isin(selected_status)) &
+    (df["Invoice label"].isin(selected_labels)) &
+    (df["Date created"] >= pd.to_datetime(selected_range[0])) &
+    (df["Date created"] <= pd.to_datetime(selected_range[1]))
+]
     
     # KPI summary
     col1, col2, col3 = st.columns(3)
