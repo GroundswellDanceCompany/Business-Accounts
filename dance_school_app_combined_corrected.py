@@ -280,8 +280,8 @@ elif selection == "Dashboard":
             status_index = headers.index("Status")
             
 
-            st.write("Selected labels:", selected_to_mark)
-            updated = 0
+            
+            
 
             for i, row in enumerate(all_data[1:], start=2):
                 label = row[label_index].strip()
