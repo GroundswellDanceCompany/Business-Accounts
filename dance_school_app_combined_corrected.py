@@ -370,21 +370,27 @@ elif selection == "Student Manager":
     st.divider()
     st.subheader("View Class Rosters")
 
-    roster_data = classes_sheet.get_all_records()
+    try:
+        roster_data = classes_sheet.get_all_records()
+        st.write("Roster raw data:", roster_data)  # TEMP DEBUG
 
-    if isinstance(roster_data, list) and roster_data:
-        df_roster = pd.DataFrame(roster_data)
+        if isinstance(roster_data, list) and roster_data:
+            df_roster = pd.DataFrame(roster_data)
 
-        if "Class" in df_roster.columns:
-            available_classes = df_roster["Class"].unique().tolist()
-            selected_roster_class = st.selectbox("Select a Class to View", available_classes)
+            if "Class" in df_roster.columns:
+                available_classes = df_roster["Class"].unique().tolist()
+                selected_roster_class = st.selectbox("Select a Class to View", available_classes)
 
-            filtered_roster = df_roster[df_roster["Class"] == selected_roster_class]
+                filtered_roster = df_roster[df_roster["Class"] == selected_roster_class]
 
-            if not filtered_roster.empty:
-                st.write(f"### Students Enrolled in {selected_roster_class}")
-                st.dataframe(filtered_roster[["Student", "Age group", "Status"]])
+                if not filtered_roster.empty:
+                    st.write(f"### Students Enrolled in {selected_roster_class}")
+                    st.dataframe(filtered_roster[["Student", "Age group", "Status"]])
+                else:
+                    st.info("No students found for this class.")
             else:
-                st.info("No students found for this class.")
-    else:
-        st.info("No class enrollment data available.")
+                st.warning("Missing 'Class' column in roster data.")
+        else:
+            st.info("No enrollment data available.")
+    except Exception as e:
+        st.error(f"Failed to load roster data: {e}")
