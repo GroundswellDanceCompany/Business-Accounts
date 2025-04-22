@@ -216,9 +216,15 @@ elif selection == "Dashboard":
     # Sidebar filters
     with st.sidebar:
         st.header("Filters")
+
+        # Filter by custom Invoice Label
+        if "Invoice label" in df.columns:
+            labels = df["Invoice label"].dropna().unique().tolist()
+            selected_labels = st.multiselect("Invoice Label", options=labels, default=labels)
+        else:
+            selected_labels = df["Student"].unique().tolist()  # fallback
+
         selected_status = st.multiselect("Payment Status", options=df["Status"].unique(), default=df["Status"].unique())
-        students = df["Student"].unique().tolist()
-        selected_students = st.multiselect("Students", options=students, default=students)
         min_date = df["Date created"].min()
         max_date = df["Date created"].max()
         selected_range = st.date_input("Date Range", value=(min_date, max_date))
