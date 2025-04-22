@@ -320,7 +320,7 @@ elif selection == "Student Manager":
 
     # Load student list
     students_data = students_sheet.get_all_records()
-    student_names = [s["Name"] for s in students_data]
+    student_names = [s.get("Name") or s.get(" name ") or s.get("NAME") for s in students_data if s.get("Name") or s.get(" name ") or s.get("NAME")]
 
     st.subheader("Add / Edit Student")
     with st.form("student_form", clear_on_submit=True):
