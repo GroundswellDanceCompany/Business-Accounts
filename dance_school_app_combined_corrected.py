@@ -370,19 +370,21 @@ elif selection == "Student Manager":
     st.divider()
     st.subheader("View Class Rosters")
 
-    # Load the roster data from Google Sheet
     roster_data = classes_sheet.get_all_records()
-    df_roster = pd.DataFrame(roster_data)
 
-    available_classes = df_roster["Class"].unique().tolist()
+    if isinstance(roster_data, list) and roster_data:
+        df_roster = pd.DataFrame(roster_data)
 
-    selected_roster_class = st.selectbox("Select a Class to View", available_classes)
+        if "Class" in df_roster.columns:
+            available_classes = df_roster["Class"].unique().tolist()
+            selected_roster_class = st.selectbox("Select a Class to View", available_classes)
 
-    # Filter and display students enrolled in the selected class
-    filtered_roster = df_roster[df_roster["Class"] == selected_roster_class]
+            filtered_roster = df_roster[df_roster["Class"] == selected_roster_class]
 
-    if not filtered_roster.empty:
-        st.write(f"### Students Enrolled in {selected_roster_class}")
-        st.dataframe(filtered_roster[["Student", "Age group", "Status"]])
+            if not filtered_roster.empty:
+                st.write(f"### Students Enrolled in {selected_roster_class}")
+                st.dataframe(filtered_roster[["Student", "Age group", "Status"]])
+            else:
+                st.info("No students found for this class.")
     else:
-        st.info("No students found for this class.")
+        st.info("No class enrollment data available.")
