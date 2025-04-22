@@ -350,5 +350,5 @@ elif selection == "Student Manager":
         enroll = st.form_submit_button("Assign to Class")
 
         if enroll and student:
-            classes_sheet.append_row([student, class_name, "Enrolled"])
+            classes_sheet.append_row([student, class_name, age_group, "Enrolled"])
             st.success(f"{student} assigned to {class_name}")
