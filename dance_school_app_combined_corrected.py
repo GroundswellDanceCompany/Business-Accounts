@@ -292,6 +292,9 @@ elif selection == "Dashboard":
 
             if updated:
                 st.success(f"{updated} invoice(s) marked as Paid.")
+                st.info("Marked as Paid. Please refresh manually or use the button below.")
+                if st.button("Refresh Now"):
+                    st.experimental_rerun()
                 
             else:
                 st.warning("No matching rows were found to update.")
