@@ -308,8 +308,8 @@ elif selection == "Student Manager":
     from oauth2client.service_account import ServiceAccountCredentials
 
     if st.session_state.get("refresh_students"):
-    st.session_state.refresh_students = False
-    st.experimental_rerun()
+        st.session_state.refresh_students = False
+        st.experimental_rerun()
 
     st.header("Student & Class Management")
 
