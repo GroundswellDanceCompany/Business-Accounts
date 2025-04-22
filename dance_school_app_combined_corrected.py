@@ -307,10 +307,6 @@ elif selection == "Student Manager":
     import gspread
     from oauth2client.service_account import ServiceAccountCredentials
 
-    # Compatibility patch for rerun (supports both old and new versions of Streamlit)
-    if not hasattr(st, "rerun") and hasattr(st, "experimental_rerun"):
-    st.rerun = st.experimental_rerun
-
     if "refresh_students" in st.session_state and st.session_state.refresh_students:
         st.session_state.refresh_students = False
         st.rerun()
