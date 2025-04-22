@@ -334,9 +334,9 @@ elif selection == "Student Manager":
             students_sheet.append_row([name, age_group, contact, notes])
             st.success(f"Student '{name}' added successfully!")
 
-        st.info("If you just added a student, refresh to update the list below.")
-        if st.button("Refresh Student List"):
-            st.experimental_rerun()
+            st.info("If you just added a student, refresh to update the list below.")
+            if st.button("Refresh Student List"):
+                st.experimental_rerun()
     
     st.divider()
 
