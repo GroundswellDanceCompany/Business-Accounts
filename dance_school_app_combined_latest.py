@@ -206,8 +206,8 @@ elif selection == "Dashboard":
     df = load_data()
     
     # Parse dates
-    df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-    df["Amount"] = pd.to_numeric(df["Grand Total"], errors="coerce")
+    df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
+    df["Amount"] = pd.to_numeric(df["Grand total"], errors="coerce")
     df["Status"] = df["Status"].fillna("Unpaid")
     
     st.title("Dance School Invoice Dashboard")
