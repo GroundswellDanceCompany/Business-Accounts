@@ -247,9 +247,10 @@ elif selection == "Dashboard":
     monthly["Month"] = monthly["Date created"].astype(str)
     st.line_chart(monthly.set_index("Month"))
     
-    # Status breakdown
-    st.subheader("Invoice Status Breakdown")
-    st.bar_chart(filtered_df["Status"].value_counts())
+    # Revenue by Student breakdown
+    st.subheader("Revenue by Student")
+    student_totals = filtered_df.groupby("Student")["Grand total"].sum().sort_values(ascending=False)
+    st.bar_chart(student_totals)
     
     # Full data view
     with st.expander("See Filtered Invoice Data"):
