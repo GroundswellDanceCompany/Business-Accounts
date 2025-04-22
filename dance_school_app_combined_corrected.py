@@ -339,16 +339,17 @@ elif selection == "Student Manager":
     st.subheader("Assign Student to Class")
     with st.form("class_assign_form", clear_on_submit=True):
         student = st.selectbox("Select Student", options=student_names)
-        class_name = st.selectbox("Select Class", [
-            "Junior Ballet", "Intermediate Ballet",
-            "Junior Contemporary", "Intermediate Contemporary",
-            "Junior Jazz", "Advanced Jazz",
-            "Junior House & Hip Hop", "Advanced House & Hip Hop",
-            "Junior Waacking & Locking", "Advanced Waacking & Locking",
-            "Tap Class", "Commercial", "Private"
-        ])
+        selected_classes = st.multiselect("Select Class(es)", [
+        "Junior Ballet", "Intermediate Ballet",
+        "Junior Contemporary", "Intermediate Contemporary",
+        "Junior Jazz", "Advanced Jazz",
+        "Junior House & Hip Hop", "Advanced House & Hip Hop",
+        "Junior Waacking & Locking", "Advanced Waacking & Locking",
+        "Tap Class", "Commercial", "Private"
+    ])
         enroll = st.form_submit_button("Assign to Class")
 
-        if enroll and student:
-            classes_sheet.append_row([student, class_name, age_group, "Enrolled"])
-            st.success(f"{student} assigned to {class_name}")
+        if enroll and student and selected_classes:
+            for cls in selected_classes:
+                classes_sheet.append_row([student, cls, age_group, "Enrolled"])
+            st.success(f"{student} assigned to: {', '.join(selected_classes)}")
