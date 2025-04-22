@@ -29,6 +29,7 @@ if selection == "Invoice Generator":
     today = date.today()
     invoice_start = st.date_input("Invoice Start Date", value=today)
     invoice_end = st.date_input("Invoice End Date", value=today + timedelta(weeks=4))
+    invoice_label = st.text_input("Custom Invoice Label (e.g. Maya - April 2025)", value=f"{student} - {invoice_start.strftime('%b %Y')}")
     
     selected_classes = st.multiselect("Select Classes", [
         "Junior Ballet", "Intermediate Ballet",
