@@ -162,8 +162,8 @@ if selection == "Invoice Generator":
         f"): £{ex['amount']:.2f}"
         for ex in st.session_state.extras
     )
-    
-        row = [date_created, invoice_period, student, class_names, classes_attended, total_class_rate, extra_names, extras_total, grand_total, "Unpaid", notes]
+        invoice_label = f"{student} - {invoice_start.strftime('%b %Y')}"
+        row = [date_created, invoice_period, student, class_names, classes_attended, total_class_rate, extra_names, extras_total, grand_total, "Unpaid", notes, invoice_label]
         sheet.append_row(row)
     
         st.success(f"Invoice created for {student} (£{grand_total:.2f})")
@@ -237,9 +237,8 @@ elif selection == "Dashboard":
     col3.metric("Unpaid", f"£{filtered_df[filtered_df['Status'] == 'Unpaid']['Grand total'].sum():.2f}")
     
     # Totals by student
-    st.subheader("Total by Student")
-    student_summary = filtered_df.groupby("Student")["Grand total"].sum().reset_index().sort_values(by="Grand total", ascending=False)
-    st.dataframe(student_summary)
+    st.subheader("Invoice Summary by Label")
+    st.dataframe(filtered_df[["Invoice label", "Student", "Grand total", "Status"]])
     
     # Monthly trend
     st.subheader("Monthly Invoice Trend")
