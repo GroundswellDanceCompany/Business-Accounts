@@ -278,7 +278,7 @@ elif selection == "Dashboard":
             headers = all_data[0]
             label_index = headers.index("Invoice label")
             status_index = headers.index("Status")
-            st.experimental_rerun()
+            
 
             st.write("Selected labels:", selected_to_mark)
             updated = 0
