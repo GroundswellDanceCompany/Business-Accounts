@@ -368,29 +368,33 @@ elif selection == "Student Manager":
             st.success(f"{student} assigned to: {', '.join(selected_classes)}")
 
     st.divider()
-    st.subheader("View Class Rosters")
+    st.subheader("Class Rosters")
 
     try:
         roster_data = classes_sheet.get_all_records()
-        st.write("Roster raw data:", roster_data)  # TEMP DEBUG
 
-        if isinstance(roster_data, list) and roster_data:
+        if roster_data and isinstance(roster_data, list):
             df_roster = pd.DataFrame(roster_data)
 
-            if "Class" in df_roster.columns:
-                available_classes = df_roster["Class"].unique().tolist()
-                selected_roster_class = st.selectbox("Select a Class to View", available_classes)
+            if "Class" in df_roster.columns and "Student" in df_roster.columns:
+                available_classes = sorted(df_roster["Class"].dropna().unique().tolist())
 
-                filtered_roster = df_roster[df_roster["Class"] == selected_roster_class]
+                selected_class = st.selectbox("Select a class to view roster", available_classes)
 
-                if not filtered_roster.empty:
-                    st.write(f"### Students Enrolled in {selected_roster_class}")
-                    st.dataframe(filtered_roster[["Student", "Age group", "Status"]])
+                class_roster = df_roster[df_roster["Class"] == selected_class]
+
+                if not class_roster.empty:
+                    st.write(f"### Students Enrolled in: {selected_class}")
+                    st.dataframe(class_roster[["Student", "Age group", "Status"]])
+
+                    # Optional download
+                    csv_data = class_roster.to_csv(index=False)
+                    st.download_button("Download Roster as CSV", csv_data, file_name=f"{selected_class}_roster.csv", mime="text/csv")
                 else:
                     st.info("No students found for this class.")
             else:
-                st.warning("Missing 'Class' column in roster data.")
+                st.warning("Sheet is missing 'Class' or 'Student' columns.")
         else:
             st.info("No enrollment data available.")
     except Exception as e:
-        st.error(f"Failed to load roster data: {e}")
+        st.error(f"Error loading roster: {e}")
