@@ -278,9 +278,7 @@ elif selection == "Dashboard":
             headers = all_data[0]
             label_index = headers.index("Invoice label")
             status_index = headers.index("Status")
-            
-
-            
+            Updated = 0
             
 
             for i, row in enumerate(all_data[1:], start=2):
