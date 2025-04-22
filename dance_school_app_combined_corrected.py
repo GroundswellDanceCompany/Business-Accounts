@@ -1,5 +1,9 @@
 import streamlit as st
 
+# Compatibility patch for rerun (supports both old and new versions of Streamlit)
+if not hasattr(st, "rerun") and hasattr(st, "experimental_rerun"):
+    st.rerun = st.experimental_rerun
+
 st.set_page_config(page_title="Dance School OS", layout="wide")
 
 tabs = ["Invoice Generator", "Dashboard", "Student Manager"]
@@ -309,11 +313,11 @@ elif selection == "Student Manager":
 
     if "refresh_students" in st.session_state and st.session_state.refresh_students:
         st.session_state.refresh_students = False
-        st.experimental_rerun()
+        st.rerun()
 
     if "refresh_enrollment" in st.session_state and st.session_state.refresh_enrollment:
         st.session_state.refresh_enrollment = False
-        st.experimental_rerun()
+        st.rerun()
         
     st.header("Student & Class Management")
 
