@@ -273,20 +273,27 @@ elif selection == "Dashboard":
         )
 
         if st.button("Mark Selected as Paid"):
-            worksheet = sheet  # already opened earlier
+            worksheet = sheet
             all_data = worksheet.get_all_values()
             headers = all_data[0]
             label_index = headers.index("Invoice label")
             status_index = headers.index("Status")
 
-            for i, row in enumerate(all_data[1:], start=2):  # skip header row, start from row 2
-                if row[label_index] in selected_to_mark:
-                     worksheet.update_cell(i, status_index + 1, "Paid")
+            st.write("Selected labels:", selected_to_mark)
+            updated = 0
 
-            st.success("Selected invoices marked as Paid.")
-            st.experimental_rerun()
-    else:
-        st.info("No unpaid invoices found.")
+            for i, row in enumerate(all_data[1:], start=2):
+                label = row[label_index].strip()
+                if label in [s.strip() for s in selected_to_mark]:
+                    worksheet.update_cell(i, status_index + 1, "Paid")
+                    updated += 1
+                    st.write(f"✔ Updated row {i} with label: {label}")
+
+            if updated:
+                st.success(f"{updated} invoice(s) marked as Paid.")
+                st.experimental_rerun()
+            else:
+                st.warning("No matching rows were found to update.")
 
     # CSV export
     st.download_button("Download Filtered Data as CSV", data=filtered_df.to_csv(index=False), file_name="invoices_filtered.csv", mime="text/csv")
