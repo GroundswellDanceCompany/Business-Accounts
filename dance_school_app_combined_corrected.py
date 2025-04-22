@@ -264,3 +264,29 @@ elif selection == "Dashboard":
     
     # CSV export
     st.download_button("Download Filtered Data as CSV", data=filtered_df.to_csv(index=False), file_name="invoices_filtered.csv", mime="text/csv")
+
+    # Add 'Mark as Paid' functionality
+    st.subheader("Mark Invoices as Paid")
+
+    unpaid_invoices = df[df["Status"] != "Paid"]
+    if not unpaid_invoices.empty:
+        selected_to_mark = st.multiselect(
+            "Select Invoice Labels to Mark as Paid",
+            options=unpaid_invoices["Invoice label"].dropna().unique().tolist()
+        )
+
+        if st.button("Mark Selected as Paid"):
+            worksheet = sheet  # already opened earlier
+            all_data = worksheet.get_all_values()
+            headers = all_data[0]
+            label_index = headers.index("Invoice label")
+            status_index = headers.index("Status")
+
+            for i, row in enumerate(all_data[1:], start=2):  # skip header row, start from row 2
+                if row[label_index] in selected_to_mark:
+                     worksheet.update_cell(i, status_index + 1, "Paid")
+
+            st.success("Selected invoices marked as Paid.")
+            st.experimental_rerun()
+    else:
+        st.info("No unpaid invoices found.")
