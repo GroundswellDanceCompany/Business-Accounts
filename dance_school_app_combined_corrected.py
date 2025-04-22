@@ -307,6 +307,7 @@ elif selection == "Student Manager":
     import streamlit as st
     import gspread
     from oauth2client.service_account import ServiceAccountCredentials
+    import pandas as pd
 
     if "refresh_students" in st.session_state and st.session_state.refresh_students:
         st.session_state.refresh_students = False
