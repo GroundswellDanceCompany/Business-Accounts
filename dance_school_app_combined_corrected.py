@@ -373,27 +373,27 @@ elif selection == "Student Manager":
     st.subheader("Assign Student to Class")
 
     with st.form("class_assign_form", clear_on_submit=True):
-    student = st.selectbox("Select Student", options=student_names)
-    selected_classes = st.multiselect("Select Class(es)", [
-        "Junior Ballet", "Intermediate Ballet",
-        "Junior Contemporary", "Intermediate Contemporary",
-        "Junior Jazz", "Advanced Jazz",
-        "Junior House & Hip Hop", "Advanced House & Hip Hop",
-        "Junior Waacking & Locking", "Advanced Waacking & Locking",
-        "Tap Class", "Commercial", "Private"
-    ])
-    enroll = st.form_submit_button("Assign to Class")
+        student = st.selectbox("Select Student", options=student_names)
+        selected_classes = st.multiselect("Select Class(es)", [
+            "Junior Ballet", "Intermediate Ballet",
+            "Junior Contemporary", "Intermediate Contemporary",
+            "Junior Jazz", "Advanced Jazz",
+            "Junior House & Hip Hop", "Advanced House & Hip Hop",
+            "Junior Waacking & Locking", "Advanced Waacking & Locking",
+            "Tap Class", "Commercial", "Private"
+        ])
+        enroll = st.form_submit_button("Assign to Class")
 
-    if enroll and student and selected_classes:
-        students_data = students_sheet.get_all_records()  # Ensure it's up to date
-        student_info = next((s for s in students_data if s["Name"] == student), None)
-        age_group = student_info["Age group"] if student_info else "Unknown"
+        if enroll and student and selected_classes:
+            students_data = students_sheet.get_all_records()  # Ensure it's up to date
+            student_info = next((s for s in students_data if s["Name"] == student), None)
+            age_group = student_info["Age group"] if student_info else "Unknown"
 
-        st.write("DEBUG: Assigning to class", student, selected_classes, age_group)  # TEMP: Check this shows
+            st.write("DEBUG: Assigning to class", student, selected_classes, age_group)  # TEMP: Check this shows
 
-        for cls in selected_classes:
-            classes_sheet.append_row([student, cls, age_group, "Enrolled"])
-        st.success(f"{student} assigned to: {', '.join(selected_classes)}")
+            for cls in selected_classes:
+                classes_sheet.append_row([student, cls, age_group, "Enrolled"])
+            st.success(f"{student} assigned to: {', '.join(selected_classes)}")
 
     # --------------------------
     # View Class Rosters
