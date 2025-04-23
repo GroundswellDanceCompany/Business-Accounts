@@ -369,11 +369,6 @@ elif selection == "Student Manager":
             st.session_state.refresh_students = True
             st.rerun()
 
-    st.info("If you just added a student, click below to refresh the list.")
-    if st.button("Refresh Student List"):
-        st.session_state.refresh_students = True
-
-
     st.divider()
     st.subheader("Assign Student to Class")
 
