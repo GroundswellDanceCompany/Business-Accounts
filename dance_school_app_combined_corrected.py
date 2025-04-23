@@ -505,7 +505,21 @@ elif selection == "Accounts":
     invoices["Month"] = invoices["Date created"].dt.to_period("M")
     expenses["Month"] = expenses["Date"].dt.to_period("M")
 
-    st.write("Loaded columns:", expenses.columns.tolist())
+    expenses_data = expenses_sheet.get_all_records()
+    expenses = pd.DataFrame(expenses_data)
+
+    # Show the real column names for debugging
+    st.write("DEBUG: Raw expense headers:", expenses.columns.tolist())
+
+    # Clean the column names
+    expenses.columns = expenses.columns.str.strip().str.lower()
+
+    # Now use lowercase 'date' instead of 'Date'
+    if "date" in expenses.columns:
+        expenses["date"] = pd.to_datetime(expenses["date"], errors="coerce")
+        expenses["month"] = expenses["date"].dt.strftime("%B %Y")
+    else:
+        st.error("Expected column 'Date' not found. Check header in Google Sheet.")
 
     # Income + expenses by month
     income_monthly = invoices.groupby("Month")["Grand total"].sum().reset_index()
