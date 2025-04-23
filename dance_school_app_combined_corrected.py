@@ -389,6 +389,7 @@ elif selection == "Student Manager":
             student_info = next((s for s in students_data if s["Name"] == student), None)
             age_group = student_info["Age group"] if student_info else "Unknown"
 
+        
 
             for cls in selected_classes:
                 classes_sheet.append_row([student, cls, age_group, "Enrolled"])
