@@ -335,13 +335,14 @@ elif selection == "Student Manager":
     st.subheader("Add / Edit Student")
     with st.form("student_form", clear_on_submit=True):
         name = st.text_input("Name")
+        dob = st.date_input("Date of Birth")
         age_group = st.selectbox("Age Group", ["Mini (3-5)", "Junior (6-12)", "Teen (13-16)", "Adult"])
         contact = st.text_input("Contact Info")
         notes = st.text_area("Notes (optional)")
         submit = st.form_submit_button("Save Student")
 
         if submit and name:
-            students_sheet.append_row([name, age_group, contact, notes])
+            students_sheet.append_row([name, str(dob), age_group, contact, notes])
             st.success(f"Student '{name}' added successfully!")
 
     st.info("If you just added a student, refresh to update the list below.")
