@@ -373,16 +373,11 @@ elif selection == "Student Manager":
     if st.button("Refresh Student List"):
         st.session_state.refresh_students = True
 
-    # --------------------------
-    # Assign Student to Class
-    # --------------------------
-    # --------------------------
-# Assign Student to Class
-# --------------------------
-st.divider()
-st.subheader("Assign Student to Class")
 
-with st.form("class_assign_form", clear_on_submit=True):
+    st.divider()
+    st.subheader("Assign Student to Class")
+
+    with st.form("class_assign_form", clear_on_submit=True):
     student = st.selectbox("Select Student", options=student_names)
     selected_classes = st.multiselect("Select Class(es)", [
         "Junior Ballet", "Intermediate Ballet",
