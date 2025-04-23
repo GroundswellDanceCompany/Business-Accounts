@@ -515,9 +515,14 @@ elif selection == "Accounts":
             submitted = st.form_submit_button("Add Expense")
 
             if submitted and receipt_date and category and amount:
-                expenses_sheet.append_row([receipt_date.strftime("%Y-%m-%d"), category, description, amount, receipt_url])
-                st.success("Expense added successfully.")
-                st.rerun()
+                expenses_sheet.append_row([
+                    receipt_date.strftime("%Y-%m-%d"),
+                    category,
+                    description,
+                    amount,
+                    receipt_url
+                ])
+                st.success("Expense added successfully. Please refresh the page manually to view it.")
 
         st.divider()
 
