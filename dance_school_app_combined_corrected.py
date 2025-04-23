@@ -511,7 +511,7 @@ elif selection == "Accounts Dashboard":
         else:
             expenses["Date"] = pd.to_datetime(expenses["Date"], errors="coerce")
             expenses["Month"] = expenses["Date"].dt.month
-            expenses["Year"] = expenses["Date"].dt.year
+            expenses["Year"] = expenses["Date"].dt.year.astype("Int64")
 
             st.subheader("Filter by Month and Year")
             current_year = datetime.now().year
