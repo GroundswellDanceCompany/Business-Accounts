@@ -308,18 +308,19 @@ elif selection == "Student Manager":
     import gspread
     from oauth2client.service_account import ServiceAccountCredentials
     import pandas as pd
+    from datetime import date
 
-    if "refresh_students" in st.session_state and st.session_state.refresh_students:
+    # Handle refresh after student/class update
+    if st.session_state.get("refresh_students"):
         st.session_state.refresh_students = False
         st.rerun()
-
-    if "refresh_enrollment" in st.session_state and st.session_state.refresh_enrollment:
+    if st.session_state.get("refresh_enrollment"):
         st.session_state.refresh_enrollment = False
         st.rerun()
-        
+
     st.header("Student & Class Management")
 
-    # Setup Google Sheets connection (reuses existing streamlit secrets)
+    # Google Sheets setup
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds_dict = st.secrets["gcp_service_account"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
@@ -328,11 +329,9 @@ elif selection == "Student Manager":
     students_sheet = client.open("Groundswell-Business").worksheet("students")
     classes_sheet = client.open("Groundswell-Business").worksheet("class_enrollments")
 
-    # Load student list
+    # Load current student data
     students_data = students_sheet.get_all_records()
-    student_names = [s.get("Name") or s.get(" name ") or s.get("NAME") for s in students_data if s.get("Name") or s.get(" name ") or s.get("NAME")]
-
-    from datetime import date
+    student_names = [s.get("Name") for s in students_data if s.get("Name")]
 
     def calculate_age_group(dob):
         today = date.today()
@@ -346,6 +345,9 @@ elif selection == "Student Manager":
         else:
             return "Adult"
 
+    # --------------------------
+    # Add / Edit Student Form
+    # --------------------------
     st.subheader("Add / Edit Student")
     with st.form("student_form", clear_on_submit=True):
         name = st.text_input("Name")
@@ -355,17 +357,8 @@ elif selection == "Student Manager":
             min_value=date(2000, 1, 1),
             max_value=date.today()
         )
-
-    if enroll and student and selected_classes:
-        student_info = next((s for s in students_data if s["Name"] == student), None)
-        age_group = student_info["Age group"] if student_info else "Unknown"
-        
-        for cls in selected_classes:
-            classes_sheet.append_row([student, cls, age_group, "Enrolled"])
-        st.success(f"{student} assigned to: {', '.join(selected_classes)}")
-        
+        age_group = calculate_age_group(dob)
         st.markdown(f"**Assigned Age Group:** {age_group}")
-    
         contact = st.text_input("Contact")
         notes = st.text_area("Notes")
         submit = st.form_submit_button("Save Student")
@@ -373,52 +366,53 @@ elif selection == "Student Manager":
         if submit and name:
             students_sheet.append_row([name, str(dob), age_group, contact, notes])
             st.success(f"Student '{name}' added successfully!")
-
-        st.info("If you just added a student, refresh to update the list below.")
-        if st.button("Refresh Student List"):
             st.session_state.refresh_students = True
-    
-    st.divider()
+            st.rerun()
 
+    st.info("If you just added a student, click below to refresh the list.")
+    if st.button("Refresh Student List"):
+        st.session_state.refresh_students = True
+
+    # --------------------------
+    # Assign Student to Class
+    # --------------------------
+    st.divider()
     st.subheader("Assign Student to Class")
     with st.form("class_assign_form", clear_on_submit=True):
         student = st.selectbox("Select Student", options=student_names)
         selected_classes = st.multiselect("Select Class(es)", [
-        "Junior Ballet", "Intermediate Ballet",
-        "Junior Contemporary", "Intermediate Contemporary",
-        "Junior Jazz", "Advanced Jazz",
-        "Junior House & Hip Hop", "Advanced House & Hip Hop",
-        "Junior Waacking & Locking", "Advanced Waacking & Locking",
-        "Tap Class", "Commercial", "Private"
-    ])
+            "Junior Ballet", "Intermediate Ballet",
+            "Junior Contemporary", "Intermediate Contemporary",
+            "Junior Jazz", "Advanced Jazz",
+            "Junior House & Hip Hop", "Advanced House & Hip Hop",
+            "Junior Waacking & Locking", "Advanced Waacking & Locking",
+            "Tap Class", "Commercial", "Private"
+        ])
         enroll = st.form_submit_button("Assign to Class")
 
         if enroll and student and selected_classes:
+            student_info = next((s for s in students_data if s["Name"] == student), None)
+            age_group = student_info["Age group"] if student_info else "Unknown"
             for cls in selected_classes:
                 classes_sheet.append_row([student, cls, age_group, "Enrolled"])
             st.success(f"{student} assigned to: {', '.join(selected_classes)}")
 
+    # --------------------------
+    # View Class Rosters
+    # --------------------------
     st.divider()
     st.subheader("Class Rosters")
-
     try:
         roster_data = classes_sheet.get_all_records()
-
         if roster_data and isinstance(roster_data, list):
             df_roster = pd.DataFrame(roster_data)
-
             if "Class" in df_roster.columns and "Student" in df_roster.columns:
                 available_classes = sorted(df_roster["Class"].dropna().unique().tolist())
-
                 selected_class = st.selectbox("Select a class to view roster", available_classes)
-
                 class_roster = df_roster[df_roster["Class"] == selected_class]
-
                 if not class_roster.empty:
                     st.write(f"### Students Enrolled in: {selected_class}")
                     st.dataframe(class_roster[["Student", "Age group", "Status"]])
-
-                    # Optional download
                     csv_data = class_roster.to_csv(index=False)
                     st.download_button("Download Roster as CSV", csv_data, file_name=f"{selected_class}_roster.csv", mime="text/csv")
                 else:
