@@ -475,3 +475,86 @@ elif selection == "Registers":
                     data["note"]
                 ])
             st.success("Attendance saved successfully!")
+
+elif selection == "Accounts":
+    st.header("Accounts Dashboard")
+
+    # Google Sheets setup
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds_dict = st.secrets["gcp_service_account"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    client = gspread.authorize(creds)
+
+    invoice_sheet = client.open("Groundswell-Business").worksheet("invoices")
+    expense_sheet = client.open("Groundswell-Business").worksheet("expenses")
+
+    # Load data
+    invoices = pd.DataFrame(invoice_sheet.get_all_records())
+    expenses = pd.DataFrame(expense_sheet.get_all_records())
+
+    # Date cleanup
+    invoices["Date created"] = pd.to_datetime(invoices["Date created"], errors="coerce")
+    expenses["Date"] = pd.to_datetime(expenses["Date"], errors="coerce")
+    invoices["Month"] = invoices["Date created"].dt.to_period("M")
+    expenses["Month"] = expenses["Date"].dt.to_period("M")
+
+    # Income + expenses by month
+    income_monthly = invoices.groupby("Month")["Grand total"].sum().reset_index()
+    expense_monthly = expenses.groupby("Month")["Amount"].sum().reset_index()
+    summary = pd.merge(income_monthly, expense_monthly, on="Month", how="outer").fillna(0)
+    summary["Profit"] = summary["Grand total"] - summary["Amount"]
+
+    # Filters
+    st.subheader("Filter by Month")
+    selected_month = st.selectbox("Select Month", summary["Month"].astype(str).sort_values(ascending=False).tolist())
+
+    filtered_income = invoices[invoices["Month"].astype(str) == selected_month]
+    filtered_expenses = expenses[expenses["Month"].astype(str) == selected_month]
+
+    st.markdown(f"### Income for {selected_month}")
+    st.dataframe(filtered_income[["Invoice label", "Student", "Grand total", "Status"]])
+
+    st.markdown(f"### Expenses for {selected_month}")
+    st.dataframe(filtered_expenses[["Date", "Category", "Description", "Amount", "Receipt URL"]])
+
+    st.markdown(f"### Profit Summary for {selected_month}")
+    row = summary[summary["Month"].astype(str) == selected_month]
+    if not row.empty:
+        st.metric("Income", f"£{row['Grand total'].values[0]:.2f}")
+        st.metric("Expenses", f"£{row['Amount'].values[0]:.2f}")
+        st.metric("Profit", f"£{row['Profit'].values[0]:.2f}")
+
+    # Upload receipt
+    st.subheader("Log a New Expense")
+    with st.form("expense_form"):
+        expense_date = st.date_input("Date", value=date.today())
+        category = st.selectbox("Category", ["Rent", "Costume", "Music/Subscriptions", "Travel", "Supplies", "Other"])
+        description = st.text_input("Description")
+        amount = st.number_input("Amount", min_value=0.0, step=0.5)
+        receipt = st.file_uploader("Upload Receipt (optional)", type=["pdf", "png", "jpg", "jpeg"])
+        submit_expense = st.form_submit_button("Save Expense")
+
+    if submit_expense:
+        # Upload file to Streamlit (optionally save elsewhere if needed)
+        receipt_url = ""
+        if receipt:
+            import os
+            from pathlib import Path
+            save_path = Path("uploaded_receipts")
+            save_path.mkdir(exist_ok=True)
+            file_path = save_path / receipt.name
+            with open(file_path, "wb") as f:
+                f.write(receipt.getbuffer())
+            receipt_url = str(file_path)
+
+        # Save to Google Sheet
+        expense_sheet.append_row([
+            str(expense_date),
+            category,
+            description,
+            amount,
+            receipt_url
+        ])
+
+        st.success("Expense logged successfully.")
+                                           
