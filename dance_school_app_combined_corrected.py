@@ -546,5 +546,5 @@ elif selection == "Accounts Dashboard":
                     expenses_sheet.append_row([exp_date.strftime("%Y-%m-%d"), category, desc, amt, receipt_url])
                     st.success("Expense added successfully.")
                     st.session_state["refresh_expenses"] = True
-                    st rerun ()
+                    
                                            
