@@ -335,7 +335,14 @@ elif selection == "Student Manager":
     st.subheader("Add / Edit Student")
     with st.form("student_form", clear_on_submit=True):
         name = st.text_input("Name")
-        dob = st.date_input("Date of Birth")
+        from datetime import date
+
+        dob = st.date_input(
+        "Date of Birth",
+        value=date(2010, 1, 1),
+        min_value=date(2000, 1, 1),
+        max_value=date.today()
+    )
         age_group = st.selectbox("Age Group", ["Mini (3-5)", "Junior (6-12)", "Teen (13-16)", "Adult"])
         contact = st.text_input("Contact Info")
         notes = st.text_area("Notes (optional)")
