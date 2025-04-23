@@ -333,14 +333,16 @@ elif selection == "Student Manager":
     students_data = students_sheet.get_all_records()
     student_names = [s.get("Name") for s in students_data if s.get("Name")]
 
+    from datetime import date
+
     def calculate_age_group(dob):
         today = date.today()
         age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
         if age <= 5:
             return "Mini (3-5)"
-        elif age <= 12:
+        elif 6 <= age <= 12:
             return "Junior (6-12)"
-        elif age <= 16:
+        elif 13 <= age <= 16:
             return "Teen (13-16)"
         else:
             return "Adult"
