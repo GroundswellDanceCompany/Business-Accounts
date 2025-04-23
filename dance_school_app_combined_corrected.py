@@ -477,6 +477,8 @@ elif selection == "Registers":
             st.success("Attendance saved successfully!")
 
 elif selection == "Accounts":
+    import streamlit as st
+    import json
     import gspread
     import pandas as pd
     from datetime import datetime
