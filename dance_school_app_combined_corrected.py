@@ -425,6 +425,12 @@ elif selection == "Student Manager":
         st.error(f"Error loading roster: {e}")
 
 elif selection == "Registers":
+    import streamlit as st
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+    import pandas as pd
+    from datetime import date
+    
     st.header("Attendance Register")
 
     # Connect to Google Sheets
