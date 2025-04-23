@@ -373,6 +373,7 @@ elif selection == "Student Manager":
     st.info("If you just added a student, refresh to update the list below.")
     if st.button("Refresh Student List"):
         st.session_state.refresh_students = True
+        st.rerun()
             
 
     st.divider()
