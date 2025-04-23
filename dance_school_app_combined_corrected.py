@@ -479,7 +479,7 @@ elif selection == "Registers":
 elif selection == "Accounts Dashboard":
     if st.session_state.get("refresh_expenses"):
         st.session_state["refresh_expenses"] = False
-        st.experimental_rerun()
+        st rerun ()
         
     import streamlit as st
     import gspread
@@ -547,4 +547,5 @@ elif selection == "Accounts Dashboard":
                     expenses_sheet.append_row([exp_date.strftime("%Y-%m-%d"), category, desc, amt, receipt_url])
                     st.success("Expense added successfully.")
                     st.session_state["refresh_expenses"] = True
+                    st rerun ()
                                            
