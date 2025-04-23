@@ -423,3 +423,49 @@ elif selection == "Student Manager":
             st.info("No enrollment data available.")
     except Exception as e:
         st.error(f"Error loading roster: {e}")
+
+elif selection == "Registers":
+    st.header("Attendance Register")
+
+    # Connect to Google Sheets
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds_dict = st.secrets["gcp_service_account"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    client = gspread.authorize(creds)
+
+    classes_sheet = client.open("Groundswell-Business").worksheet("class_enrollments")
+    attendance_sheet = client.open("Groundswell-Business").worksheet("attendance_records")
+
+    # Select class and date
+    class_list = sorted(list(set(row["Class"] for row in classes_sheet.get_all_records() if row["Class"])))
+    selected_class = st.selectbox("Select Class", class_list)
+    selected_date = st.date_input("Date", value=date.today())
+
+    # Load students enrolled in that class
+    enrolled_data = classes_sheet.get_all_records()
+    enrolled_students = [row for row in enrolled_data if row["Class"] == selected_class]
+
+    if not enrolled_students:
+        st.info("No students are enrolled in this class.")
+    else:
+        st.subheader(f"Mark Attendance for: {selected_class}")
+        attendance = {}
+
+        for student in enrolled_students:
+            col1, col2 = st.columns([3, 2])
+            with col1:
+                present = st.checkbox(f"{student['Student']}", key=student['Student'])
+            with col2:
+                note = st.text_input(f"Notes for {student['Student']}", key=f"{student['Student']}_note")
+            attendance[student["Student"]] = {"present": present, "note": note}
+
+        if st.button("Submit Attendance"):
+            for student_name, data in attendance.items():
+                attendance_sheet.append_row([
+                    str(selected_date),
+                    selected_class,
+                    student_name,
+                    "Present" if data["present"] else "Absent",
+                    data["note"]
+                ])
+            st.success("Attendance saved successfully!")
