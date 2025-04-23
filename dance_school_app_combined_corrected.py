@@ -351,6 +351,7 @@ elif selection == "Student Manager":
     # Add / Edit Student Form
     # --------------------------
     st.subheader("Add / Edit Student")
+
     with st.form("student_form", clear_on_submit=True):
         name = st.text_input("Name")
         dob = st.date_input(
@@ -359,19 +360,20 @@ elif selection == "Student Manager":
             min_value=date(2000, 1, 1),
             max_value=date.today()
         )
-        age_group = calculate_age_group(dob)
-        st.markdown(f"**Assigned Age Group:** {age_group}")
-        
         contact = st.text_input("Contact")
         notes = st.text_area("Notes")
-        
         submit = st.form_submit_button("Save Student")
 
-    if submit and name:
-        students_sheet.append_row([name, str(dob), age_group, contact, notes])
-        st.success(f"Student '{name}' added successfully!")
-        st.session_state.refresh_students = True
-        st.rerun()
+        if submit and name:
+            age_group = calculate_age_group(dob)
+            students_sheet.append_row([name, str(dob), age_group, contact, notes])
+            st.success(f"Student '{name}' added successfully!")
+            st.markdown(f"**Assigned Age Group:** {age_group}")
+
+        st.info("If you just added a student, refresh to update the list below.")
+        if st.button("Refresh Student List"):
+            st.session_state.refresh_students = True
+            st.rerun()
 
     st.divider()
     st.subheader("Assign Student to Class")
