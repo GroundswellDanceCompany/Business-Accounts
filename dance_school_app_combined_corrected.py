@@ -397,9 +397,7 @@ elif selection == "Student Manager":
                 classes_sheet.append_row([student, cls, age_group, "Enrolled"])
             st.success(f"{student} assigned to: {', '.join(selected_classes)}")
 
-    # --------------------------
-    # View Class Rosters
-    # --------------------------
+    
     st.divider()
     st.subheader("Class Rosters")
     try:
