@@ -370,9 +370,9 @@ elif selection == "Student Manager":
             st.success(f"Student '{name}' added successfully!")
             st.markdown(f"**Assigned Age Group:** {age_group}")
 
-            st.info("If you just added a student, refresh to update the list below.")
-        if st.button("Refresh Student List"):
-            st.session_state.refresh_students = True
+    st.info("If you just added a student, refresh to update the list below.")
+    if st.button("Refresh Student List"):
+        st.session_state.refresh_students = True
             
 
     st.divider()
