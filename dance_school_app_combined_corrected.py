@@ -375,7 +375,6 @@ elif selection == "Student Manager":
         st.session_state.refresh_students = True
         st.rerun()
             
-
     st.divider()
     st.subheader("Assign Student to Class")
 
@@ -395,8 +394,6 @@ elif selection == "Student Manager":
             students_data = students_sheet.get_all_records()  # Ensure it's up to date
             student_info = next((s for s in students_data if s["Name"] == student), None)
             age_group = student_info["Age group"] if student_info else "Unknown"
-
-        
 
             for cls in selected_classes:
                 classes_sheet.append_row([student, cls, age_group, "Enrolled"])
