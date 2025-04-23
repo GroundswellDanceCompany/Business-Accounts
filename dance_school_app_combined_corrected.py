@@ -477,7 +477,10 @@ elif selection == "Registers":
             st.success("Attendance saved successfully!")
 
 elif selection == "Accounts Dashboard":
-
+    if st.session_state.get("refresh_expenses"):
+        st.session_state["refresh_expenses"] = False
+        st.experimental_rerun()
+        
     import streamlit as st
     import gspread
     from oauth2client.service_account import ServiceAccountCredentials
@@ -543,5 +546,5 @@ elif selection == "Accounts Dashboard":
                 if submit_exp:
                     expenses_sheet.append_row([exp_date.strftime("%Y-%m-%d"), category, desc, amt, receipt_url])
                     st.success("Expense added successfully.")
-                    st.experimental_rerun()
+                    st.session_state["refresh_expenses"] = True
                                            
