@@ -477,6 +477,10 @@ elif selection == "Registers":
             st.success("Attendance saved successfully!")
 
 elif selection == "Accounts":
+    import gspread
+    import pandas as pd
+    from datetime import datetime
+    from oauth2client.service_account import ServiceAccountCredentials
     
     st.header("Accounts Dashboard")
 
