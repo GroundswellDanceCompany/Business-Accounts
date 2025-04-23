@@ -477,11 +477,6 @@ elif selection == "Registers":
             st.success("Attendance saved successfully!")
 
 elif selection == "Accounts":
-    import streamlit as st
-    import gspread
-    from oauth2client.service_account import ServiceAccountCredentials
-    import pandas as pd
-    
     
     st.header("Accounts Dashboard")
 
