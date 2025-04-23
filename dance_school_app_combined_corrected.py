@@ -355,7 +355,15 @@ elif selection == "Student Manager":
             min_value=date(2000, 1, 1),
             max_value=date.today()
         )
-        age_group = calculate_age_group(dob)
+
+    if enroll and student and selected_classes:
+        student_info = next((s for s in students_data if s["Name"] == student), None)
+        age_group = student_info["Age group"] if student_info else "Unknown"
+        
+        for cls in selected_classes:
+            classes_sheet.append_row([student, cls, age_group, "Enrolled"])
+        st.success(f"{student} assigned to: {', '.join(selected_classes)}")
+        
         st.markdown(f"**Assigned Age Group:** {age_group}")
     
         contact = st.text_input("Contact")
@@ -365,14 +373,6 @@ elif selection == "Student Manager":
         if submit and name:
             students_sheet.append_row([name, str(dob), age_group, contact, notes])
             st.success(f"Student '{name}' added successfully!")
-
-    # Then save dob and age_group like this:
-    if submit and name:
-        students_sheet.append_row([name, str(dob), age_group, contact, notes])
-        st.success(f"Student '{name}' added successfully!")
-            contact = st.text_input("Contact Info")
-            notes = st.text_area("Notes (optional)")
-            submit = st.form_submit_button("Save Student")
 
         st.info("If you just added a student, refresh to update the list below.")
         if st.button("Refresh Student List"):
