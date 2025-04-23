@@ -478,6 +478,9 @@ elif selection == "Registers":
 
 elif selection == "Accounts Dashboard":
 
+    import streamlit as st
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
     import pandas as pd
     from datetime import datetime
     import calendar
