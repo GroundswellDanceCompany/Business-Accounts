@@ -332,10 +332,7 @@ elif selection == "Student Manager":
     students_data = students_sheet.get_all_records()
     student_names = [s.get("Name") or s.get(" name ") or s.get("NAME") for s in students_data if s.get("Name") or s.get(" name ") or s.get("NAME")]
 
-    st.subheader("Add / Edit Student")
-    with st.form("student_form", clear_on_submit=True):
-        name = st.text_input("Name")
-        from datetime import date
+    from datetime import date
 
     def calculate_age_group(dob):
         today = date.today()
@@ -349,18 +346,25 @@ elif selection == "Student Manager":
         else:
             return "Adult"
 
-    # Inside your student form (replace static age_group selection)
-    dob = st.date_input(
-        "Date of Birth",
-        value=date(2010, 1, 1),
-        min_value=date(2000, 1, 1),
-        max_value=date.today()
-    )
+    st.subheader("Add / Edit Student")
+    with st.form("student_form", clear_on_submit=True):
+        name = st.text_input("Name")
+        dob = st.date_input(
+            "Date of Birth",
+            value=date(2010, 1, 1),
+            min_value=date(2000, 1, 1),
+            max_value=date.today()
+        )
+        age_group = calculate_age_group(dob)
+        st.markdown(f"**Assigned Age Group:** {age_group}")
+    
+        contact = st.text_input("Contact")
+        notes = st.text_area("Notes")
+        submit = st.form_submit_button("Save Student")
 
-    age_group = calculate_age_group(dob)
-
-    # Show auto-assigned age group for confirmation
-    st.markdown(f"**Assigned Age Group:** {age_group}")
+        if submit and name:
+            students_sheet.append_row([name, str(dob), age_group, contact, notes])
+            st.success(f"Student '{name}' added successfully!")
 
     # Then save dob and age_group like this:
     if submit and name:
@@ -369,10 +373,6 @@ elif selection == "Student Manager":
             contact = st.text_input("Contact Info")
             notes = st.text_area("Notes (optional)")
             submit = st.form_submit_button("Save Student")
-
-            if submit and name:
-                students_sheet.append_row([name, str(dob), age_group, contact, notes])
-                st.success(f"Student '{name}' added successfully!")
 
         st.info("If you just added a student, refresh to update the list below.")
         if st.button("Refresh Student List"):
