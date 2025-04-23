@@ -487,6 +487,27 @@ elif selection == "Accounts Dashboard":
     from datetime import datetime
     import calendar
 
+    st.subheader("Add New Expense")
+
+    with st.form("expense_entry_form", clear_on_submit=True):
+        expense_date = st.date_input("Date of Expense")
+        category = st.selectbox("Category", ["Costumes", "Studio Rent", "Music Subscriptions", "Travel", "Other"])
+        description = st.text_input("Description")
+        amount = st.number_input("Amount (£)", min_value=0.0, step=0.5)
+        receipt_url = st.text_input("Receipt URL (optional)")
+        submit_expense = st.form_submit_button("Add Expense")
+
+        if submit_expense and expense_date and category and description and amount:
+            expenses_sheet.append_row([
+                str(expense_date),
+                category,
+                description,
+                f"{amount:.2f}",
+                receipt_url
+            ])
+            st.success("Expense added successfully!")
+            st.rerun()
+
     st.header("Accounts Dashboard (Expenses Tracker)")
 
     # Google Sheets connection
