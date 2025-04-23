@@ -479,7 +479,6 @@ elif selection == "Registers":
 elif selection == "Accounts Dashboard":
     if st.session_state.get("refresh_expenses"):
         st.session_state["refresh_expenses"] = False
-        st rerun ()
         
     import streamlit as st
     import gspread
