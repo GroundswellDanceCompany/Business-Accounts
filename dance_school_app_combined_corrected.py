@@ -505,6 +505,8 @@ elif selection == "Accounts":
     invoices["Month"] = invoices["Date created"].dt.to_period("M")
     expenses["Month"] = expenses["Date"].dt.to_period("M")
 
+    st.write("Loaded columns:", expenses.columns.tolist())
+
     # Income + expenses by month
     income_monthly = invoices.groupby("Month")["Grand total"].sum().reset_index()
     expense_monthly = expenses.groupby("Month")["Amount"].sum().reset_index()
