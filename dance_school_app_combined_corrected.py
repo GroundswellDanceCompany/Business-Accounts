@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Dance School OS", layout="wide")
 
-tabs = ["Invoice Generator", "Dashboard", "Student Manager", "Registers", "Accounts Dashboard", "Finance v2"]
+tabs = ["Invoice Generator", "Dashboard", "Student Manager", "Registers", "Finance v2"]
 selection = st.sidebar.radio("Choose View", tabs)
 
 if selection == "Invoice Generator":
@@ -493,15 +493,15 @@ elif selection == "Finance v2":
     expenses_sheet = client.open("Groundswell-Business").worksheet("expenses")
 
     def load_expenses(sheet):
-    data = sheet.get_all_records(expected_headers=["Date", "Category", "Description", "Amount", "Receipt URL"])
-    df = pd.DataFrame(data)
-    if not df.empty:
-        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-        df["Amount"] = pd.to_numeric(df["Amount"], errors="coerce")
-        df["Month"] = df["Date"].dt.strftime("%B")
-        df["Year"] = df["Date"].dt.year.astype("Int64")
-        df["MonthNum"] = df["Date"].dt.month
-    return df
+        data = sheet.get_all_records(expected_headers=["Date", "Category", "Description", "Amount", "Receipt URL"])
+        df = pd.DataFrame(data)
+        if not df.empty:
+            df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+            df["Amount"] = pd.to_numeric(df["Amount"], errors="coerce")
+            df["Month"] = df["Date"].dt.strftime("%B")
+            df["Year"] = df["Date"].dt.year.astype("Int64")
+            df["MonthNum"] = df["Date"].dt.month
+        return df
     # Track state for manual refresh
     if "trigger_reload" not in st.session_state:
         st.session_state["trigger_reload"] = False
