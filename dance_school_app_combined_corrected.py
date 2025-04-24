@@ -570,75 +570,92 @@ elif selection == "Accounts Dashboard":
                     st.session_state["refresh_expenses"] = True
 
 elif selection == "Finance v2":
-    import streamlit as st
     import pandas as pd
     import calendar
     from datetime import datetime
     import gspread
     from oauth2client.service_account import ServiceAccountCredentials
 
-    st.title("Finance v2 - All-in-One Accounts")
+    st.header("Finance v2 — Accounts Dashboard")
 
-    # Google Sheets setup
+    # Google Sheets Setup
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds_dict = st.secrets["gcp_service_account"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
     expenses_sheet = client.open("Groundswell-Business").worksheet("expenses")
 
-    # Load data
-    raw_data = expenses_sheet.get_all_records()
-    df = pd.DataFrame(raw_data)
-    df.columns = [col.strip() for col in df.columns]
+    # Load expenses data
+    data = expenses_sheet.get_all_records()
+    expenses = pd.DataFrame(data)
 
-    tabs = st.tabs(["Monthly Dashboard", "Add Expense", "Full Year View"])
+    if not expenses.empty:
+        # Parse and clean
+        expenses["Date"] = pd.to_datetime(expenses["Date"], errors="coerce")
+        expenses["Amount"] = pd.to_numeric(expenses["Amount"], errors="coerce")
+        expenses["Month"] = expenses["Date"].dt.strftime("%B")
+        expenses["Year"] = expenses["Date"].dt.year.astype("Int64")
+        expenses["MonthNum"] = expenses["Date"].dt.month
+    else:
+        expenses = pd.DataFrame(columns=["Date", "Category", "Description", "Amount", "Receipt URL", "Month", "Year", "MonthNum"])
 
-    # Tab 1: Monthly Dashboard
-    with tabs[0]:
-        st.subheader("Monthly Overview")
-        if df.empty or "Date" not in df.columns:
-            st.info("No data found or missing 'Date' column.")
+    # Create internal tab view
+    tab1, tab2, tab3 = st.tabs(["Overview", "Expense Records", "Upload Receipt"])
+
+    with tab1:
+        st.subheader("Monthly Profit & Loss Overview")
+        if not expenses.empty:
+            monthly_summary = expenses.groupby(["Year", "MonthNum", "Month"]).sum(numeric_only=True)["Amount"].reset_index()
+            monthly_summary = monthly_summary.sort_values(["Year", "MonthNum"])
+            monthly_summary["Label"] = monthly_summary["Month"] + " " + monthly_summary["Year"].astype(str)
+
+            st.bar_chart(monthly_summary.set_index("Label")["Amount"])
+            st.metric("Total Expenses (YTD)", f"£{expenses['Amount'].sum():.2f}")
         else:
-            df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-            df = df.dropna(subset=["Date"])
-            df["Amount"] = pd.to_numeric(df["Amount"], errors="coerce")
-            df = df.dropna(subset=["Amount"])
-            df["Year"] = df["Date"].dt.year
-            df["Month"] = df["Date"].dt.month
-            df["MonthLabel"] = df["Date"].dt.strftime("%B %Y")
+            st.info("No data available.")
 
-            year = st.selectbox("Select Year", sorted(df["Year"].unique(), reverse=True))
-            month = st.selectbox("Select Month", list(calendar.month_name)[1:])
-            month_num = list(calendar.month_name).index(month)
+    with tab2:
+        st.subheader("Filter and Export Expense Records")
+        if not expenses.empty:
+            years = sorted(expenses["Year"].dropna().unique(), reverse=True)
+            months = list(calendar.month_name)[1:]
+            selected_year = st.selectbox("Year", years, index=0)
+            selected_month = st.selectbox("Month", months)
 
-            filtered = df[(df["Year"] == year) & (df["Month"] == month_num)]
-            for col in ["Description", "Receipt URL"]:
-                if col not in df.columns:
-                    df[col] = ""
+            month_num = months.index(selected_month) + 1
+            filtered = expenses[
+                (expenses["Year"] == selected_year) &
+                (expenses["MonthNum"] == month_num)
+            ]
+
+            category_filter = st.multiselect("Filter by Category", expenses["Category"].unique(), default=expenses["Category"].unique())
+            filtered = filtered[filtered["Category"].isin(category_filter)]
 
             st.dataframe(filtered[["Date", "Category", "Description", "Amount", "Receipt URL"]])
-            st.metric("Total This Month", f"£{filtered['Amount'].sum():.2f}")
+            st.download_button("Download Filtered as CSV", filtered.to_csv(index=False), "filtered_expenses.csv")
+        else:
+            st.info("No expenses to display.")
 
-            ytd = df[df["Year"] == year]
-            ytd_summary = ytd.groupby("MonthLabel")["Amount"].sum().reset_index()
-            st.subheader("Year-to-Date Expense Chart")
-            st.bar_chart(data=ytd_summary.set_index("MonthLabel"))
-
-    # Tab 2: Add Expense
-    with tabs[1]:
-        st.subheader("Add a New Expense")
-    
-        # Moved to top of tab to ensure it's ready
-        expenses_sheet = client.open("Groundswell-Business").worksheet("expenses")
-
-        with st.form("add_expense_form_v2", clear_on_submit=True):
-            exp_date = st.date_input("Date", value=datetime.today())
-            category = st.selectbox("Category", ["Studio Rent", "Costumes", "Music License", "Travel", "Admin", "Other"])
-            desc = st.text_input("Description")
-            amt = st.number_input("Amount (£)", min_value=0.0, step=0.5)
+    with tab3:
+        st.subheader("Upload New Expense")
+        with st.form("upload_expense_form", clear_on_submit=True):
+            date = st.date_input("Date", value=datetime.today())
+            category = st.selectbox("Category", ["Costumes", "Studio Rent", "Music Subscriptions", "Travel", "Admin", "Other"])
+            description = st.text_input("Description")
+            amount = st.number_input("Amount (£)", min_value=0.0, step=0.5)
             receipt_url = st.text_input("Receipt URL (optional)")
+            submitted = st.form_submit_button("Add Expense")
 
-            submit_exp = st.form_submit_button("Add Expense")
+            if submitted:
+                expenses_sheet.append_row([
+                    date.strftime("%Y-%m-%d"),
+                    category,
+                    description,
+                    f"{amount:.2f}",
+                    receipt_url
+                ])
+                st.success("Expense added successfully.")
+                st.session_state["refresh_expenses"] = True
         
             if submit_exp and desc and amt > 0:
                 # Save to Google Sheet
