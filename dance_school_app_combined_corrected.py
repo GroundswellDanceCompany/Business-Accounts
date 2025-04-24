@@ -623,9 +623,11 @@ elif selection == "Finance v2":
 
     # Load and process data if not waiting for refresh
     if not st.session_state["trigger_reload"]:
-        data = expenses_sheet.get_all_records()
-        expenses = pd.DataFrame(data)
-
+        raw_data = expenses_sheet.get_all_values()
+        headers = raw_data[0]
+        rows = raw_data[1:]
+        expenses = pd.DataFrame(rows, columns=headers)
+        
         if not expenses.empty:
             expenses.columns = [col.strip() for col in expenses.columns]
             expenses["Date"] = pd.to_datetime(expenses["Date"], errors="coerce")
