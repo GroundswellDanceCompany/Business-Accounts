@@ -569,6 +569,112 @@ elif selection == "Finance v2":
         else:
             st.info("No expenses to display.")
 
+elif selection == "Finance v2":
+    import pandas as pd
+    import calendar
+    from datetime import datetime
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+
+    st.header("Finance v2 — Accounts Dashboard")
+
+    # Google Sheets Setup
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds_dict = st.secrets["gcp_service_account"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    client = gspread.authorize(creds)
+    expenses_sheet = client.open("Groundswell-Business").worksheet("expenses")
+
+    # Track state for manual refresh
+    if "trigger_reload" not in st.session_state:
+        st.session_state["trigger_reload"] = False
+
+    tab1, tab2, tab3 = st.tabs(["Add Expense", "Overview", "Expense Records"])
+
+    # Tab 1: Add Expense
+    with tab1:
+        st.subheader("Upload New Expense")
+        with st.form("upload_expense_form", clear_on_submit=True):
+            date = st.date_input("Date", value=datetime.today())
+            category = st.selectbox("Category", ["Costumes", "Studio Rent", "Music Subscriptions", "Travel", "Admin", "Other"])
+            description = st.text_input("Description")
+            amount = st.number_input("Amount (£)", min_value=0.0, step=0.5)
+            receipt_url = st.text_input("Receipt URL (optional)")
+            submitted = st.form_submit_button("Add Expense")
+
+            if submitted:
+                expenses_sheet.append_row([
+                    date.strftime("%Y-%m-%d"),
+                    category,
+                    description,
+                    f"{amount:.2f}",
+                    receipt_url
+                ])
+                st.session_state["trigger_reload"] = True
+                st.success("Expense added successfully. Click 'Refresh Data Now' to update dashboard.")
+
+    # Refresh button logic
+    st.divider()
+    if st.session_state["trigger_reload"]:
+        if st.button("Refresh Data Now"):
+            st.session_state["trigger_reload"] = False
+
+    # Load and process data if not waiting for refresh
+    if not st.session_state["trigger_reload"]:
+        data = expenses_sheet.get_all_records()
+        expenses = pd.DataFrame(data)
+
+        if not expenses.empty:
+            expenses.columns = [col.strip() for col in expenses.columns]
+            expenses["Date"] = pd.to_datetime(expenses["Date"], errors="coerce")
+            expenses["Amount"] = pd.to_numeric(expenses["Amount"], errors="coerce")
+            expenses["Month"] = expenses["Date"].dt.strftime("%B")
+            expenses["Year"] = expenses["Date"].dt.year.astype("Int64")
+            expenses["MonthNum"] = expenses["Date"].dt.month
+        else:
+            expenses = pd.DataFrame(columns=["Date", "Category", "Description", "Amount", "Receipt URL", "Month", "Year", "MonthNum"])
+
+        # Tab 2: Overview
+        with tab2:
+            st.subheader("Monthly Profit & Loss Overview")
+            if not expenses.empty:
+                monthly_summary = (
+                    expenses.groupby(["Year", "MonthNum", "Month"])
+                    .sum(numeric_only=True)["Amount"]
+                    .reset_index()
+                    .sort_values(["Year", "MonthNum"])
+                )
+                monthly_summary["Label"] = monthly_summary["Month"] + " " + monthly_summary["Year"].astype(str)
+                st.bar_chart(monthly_summary.set_index("Label")["Amount"])
+                st.metric("Total Expenses (YTD)", f"£{expenses['Amount'].sum():.2f}")
+            else:
+                st.info("No data available.")
+
+        # Tab 3: Expense Records
+        with tab3:
+            st.subheader("Filter and Export Expense Records")
+            if not expenses.empty:
+                years = sorted(expenses["Year"].dropna().unique(), reverse=True)
+                months = list(calendar.month_name)[1:]
+                selected_year = st.selectbox("Year", years, index=0)
+                selected_month = st.selectbox("Month", months)
+
+                month_num = months.index(selected_month) + 1
+                filtered = expenses[
+                    (expenses["Year"] == selected_year) &
+                    (expenses["MonthNum"] == month_num)
+                ]
+
+                category_filter = st.multiselect("Filter by Category", expenses["Category"].unique(), default=expenses["Category"].unique())
+                filtered = filtered[filtered["Category"].isin(category_filter)]
+
+                st.dataframe(filtered[["Date", "Category", "Description", "Amount", "Receipt URL"]])
+                st.download_button("Download Filtered as CSV", filtered.to_csv(index=False), "filtered_expenses.csv")
+            else:
+                st.info("No expenses to display.")
+    else:
+        st.warning("New expense added. Click 'Refresh Data Now' to update the charts.")
+
 
 
     
