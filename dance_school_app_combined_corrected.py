@@ -517,8 +517,10 @@ elif selection == "Finance v2":
                 st.rerun()
 
     # Reload data after any new expense is added
-    data = expenses_sheet.get_all_records()
-    expenses = pd.DataFrame(data)
+    raw_data = expenses_sheet.get_all_values()
+    headers = raw_data[0]
+    rows = raw_data[1:]
+    expenses = pd.DataFrame(rows, columns=headers)
 
     if not expenses.empty:
         # Clean and parse data
