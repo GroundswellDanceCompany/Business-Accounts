@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Dance School OS", layout="wide")
 
-tabs = ["Invoice Generator", "Dashboard", "Student Manager", "Registers", "Finance v1", "Finance v2"]
+tabs = ["Invoice Generator", "Dashboard", "Student Manager", "Registers", "Expenses Ledger"]
 selection = st.sidebar.radio("Choose View", tabs)
 
 if selection == "Invoice Generator":
@@ -476,111 +476,7 @@ elif selection == "Registers":
                 ])
             st.success("Attendance saved successfully!")
 
-elif selection == "Finance v1":
-    import streamlit as st
-    import pandas as pd
-    import calendar
-    from datetime import datetime
-    import gspread
-    from oauth2client.service_account import ServiceAccountCredentials
-
-    st.header("Finance v2 — Accounts Dashboard")
-
-    # Google Sheets setup
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds_dict = st.secrets["gcp_service_account"]
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-    client = gspread.authorize(creds)
-    expenses_sheet = client.open("Groundswell-Business").worksheet("expenses")
-
-    # Load & clean expenses data
-    def load_expenses():
-        records = expenses_sheet.get_all_records(expected_headers=["Date", "Category", "Description", "Amount", "Receipt URL"])
-        df = pd.DataFrame(records)
-        if df.empty:
-            return pd.DataFrame(columns=["Date", "Category", "Description", "Amount", "Receipt URL", "Year", "Month", "MonthNum"])
-        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-        df["Amount"] = pd.to_numeric(df["Amount"], errors="coerce")
-        df["Year"] = df["Date"].dt.year.astype("Int64")
-        df["Month"] = df["Date"].dt.strftime("%B")
-        df["MonthNum"] = df["Date"].dt.month
-        return df
-
-    # Load fresh data
-    expenses = load_expenses()
-
-    # Tabs for clean layout
-    tab1, tab2, tab3 = st.tabs(["Add Expense", "Overview", "Expense Records"])
-
-    # --- TAB 1: Add Expense ---
-    with tab1:
-        st.subheader("Add New Expense")
-        with st.form("add_expense_form", clear_on_submit=True):
-            date = st.date_input("Date", value=datetime.today())
-            category = st.selectbox("Category", ["Studio Rent", "Costumes", "Music Subscriptions", "Travel", "Admin", "Other"])
-            description = st.text_input("Description")
-            amount = st.number_input("Amount (£)", min_value=0.0, step=0.5)
-            receipt_url = st.text_input("Receipt URL (optional)")
-            submit = st.form_submit_button("Add Expense")
-
-            if submit and description and amount > 0:
-                expenses_sheet.append_row([
-                    date.strftime("%Y-%m-%d"),
-                    category,
-                    description,
-                    f"{amount:.2f}",
-                    receipt_url
-                ])
-                st.success("Expense added successfully!")
-                st.experimental_rerun()  # Refreshes to pull in new data
-
-    # --- TAB 2: Overview ---
-    with tab2:
-        st.subheader("Monthly Profit & Loss Overview")
-        if not expenses.empty:
-            monthly = (
-                expenses.groupby(["Year", "MonthNum", "Month"])
-                .sum(numeric_only=True)["Amount"]
-                .reset_index()
-                .sort_values(["Year", "MonthNum"])
-            )
-            monthly["Label"] = monthly["Month"] + " " + monthly["Year"].astype(str)
-
-            st.bar_chart(monthly.set_index("Label")["Amount"])
-            st.metric("Total Expenses (YTD)", f"£{expenses['Amount'].sum():.2f}")
-        else:
-            st.info("No data available.")
-
-    # --- TAB 3: Expense Records ---
-    with tab3:
-        st.subheader("Filter and Export Expense Records")
-        if not expenses.empty:
-            years = sorted(expenses["Year"].dropna().unique(), reverse=True)
-            months = list(calendar.month_name)[1:]
-            selected_year = st.selectbox("Year", years)
-            selected_month = st.selectbox("Month", months)
-            month_num = months.index(selected_month) + 1
-
-            filtered = expenses[
-                (expenses["Year"] == selected_year) &
-                (expenses["MonthNum"] == month_num)
-            ]
-
-            category_filter = st.multiselect(
-                "Filter by Category",
-                options=expenses["Category"].unique(),
-                default=expenses["Category"].unique()
-            )
-            filtered = filtered[filtered["Category"].isin(category_filter)]
-
-            st.dataframe(filtered[["Date", "Category", "Description", "Amount", "Receipt URL"]])
-            st.download_button("Download Filtered as CSV", filtered.to_csv(index=False), "expenses_filtered.csv")
-        else:
-            st.info("No records to show.")
-
-
-
-elif selection == "Finance v2":
+elif selection == "Expenses Ledger":
     import pandas as pd
     import calendar
     from datetime import datetime
