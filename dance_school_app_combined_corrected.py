@@ -487,56 +487,49 @@ elif selection == "Accounts Package":
             try:
                 invoice_sheet = client.open("Groundswell-Business").worksheet("invoices")
                 invoice_data = invoice_sheet.get_all_records()
-                df = pd.DataFrame(invoice_data)
 
-                if df.empty:
-                    st.info("No invoice data found.")
+                if not invoice_data:
+                    st.info("No invoices found.")
                 else:
-                    # Clean and format
+                    df = pd.DataFrame(invoice_data)
                     df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
                     df["Grand total"] = pd.to_numeric(df["Grand total"], errors="coerce")
                     df["Status"] = df["Status"].fillna("Unpaid")
 
-                    # Sidebar-style filters
-                    with st.sidebar:
-                        st.header("Invoice Filters")
-                        labels = df["Invoice label"].dropna().unique().tolist()
-                        selected_labels = st.multiselect("Invoice Label", options=labels, default=labels)
-                        selected_status = st.multiselect("Payment Status", options=df["Status"].unique(), default=df["Status"].unique())
-                        date_range = st.date_input("Date Range", (df["Date created"].min(), df["Date created"].max()))
+                    st.write("Invoice data loaded successfully.")  # Debug check
 
-                    # Apply filters
+                    # Filter options
+                    labels = df["Invoice label"].dropna().unique().tolist() if "Invoice label" in df else df["Student"].unique().tolist()
+                    selected_labels = st.multiselect("Invoice Label", options=labels, default=labels)
+                    selected_status = st.multiselect("Status", options=df["Status"].unique(), default=df["Status"].unique())
+
+                    date_min = df["Date created"].min()
+                    date_max = df["Date created"].max()
+                    selected_range = st.date_input("Date Range", (date_min, date_max))
+
                     filtered_df = df[
-                        (df["Invoice label"].isin(selected_labels)) &
-                        (df["Status"].isin(selected_status)) &
-                        (df["Date created"] >= pd.to_datetime(date_range[0])) &
-                        (df["Date created"] <= pd.to_datetime(date_range[1]))
+                        df["Status"].isin(selected_status) &
+                        df["Invoice label"].isin(selected_labels) &
+                        (df["Date created"] >= pd.to_datetime(selected_range[0])) &
+                        (df["Date created"] <= pd.to_datetime(selected_range[1]))
                     ]
 
-                    # KPIs
+                    # KPI summary
                     col1, col2, col3 = st.columns(3)
                     col1.metric("Total Invoiced", f"£{filtered_df['Grand total'].sum():.2f}")
                     col2.metric("Paid", f"£{filtered_df[filtered_df['Status'] == 'Paid']['Grand total'].sum():.2f}")
-                    col3.metric("Unpaid", f"£{filtered_df[filtered_df['Status'] == 'Unpaid']['Grand total'].sum():.2f}")
+                    col3.metric("Unpaid", f"£{filtered_df[filtered_df['Status'] != 'Paid']['Grand total'].sum():.2f}")
 
-                    # Breakdown by student
-                    st.subheader("Summary by Student")
+                    st.subheader("Invoices by Student")
                     st.dataframe(filtered_df[["Invoice label", "Student", "Grand total", "Status"]])
 
-                    # Monthly trend
-                    st.subheader("Monthly Invoice Trend")
+                    st.subheader("Monthly Invoicing Trend")
                     monthly = filtered_df.groupby(filtered_df["Date created"].dt.to_period("M"))["Grand total"].sum().reset_index()
                     monthly["Month"] = monthly["Date created"].astype(str)
                     st.line_chart(monthly.set_index("Month"))
 
-                    # Revenue bar chart
-                    st.subheader("Revenue by Student")
-                    student_totals = filtered_df.groupby("Student")["Grand total"].sum().sort_values(ascending=False)
-                    st.bar_chart(student_totals)
-
-                    # Export CSV
-                    with st.expander("Download Filtered Data"):
-                        st.download_button("Download CSV", filtered_df.to_csv(index=False), file_name="filtered_invoices.csv")
+                    # Optional CSV export
+                    st.download_button("Download Filtered CSV", filtered_df.to_csv(index=False), "filtered_invoices.csv")
 
             except Exception as e:
                 st.error(f"Error loading invoices: {e}")
