@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Dance School OS", layout="wide")
 
-tabs = ["Invoice Generator", "Dashboard", "Student Manager", "Registers", "Expenses Ledger"]
+tabs = ["Invoice Generator", "Dashboard", "Student Manager", "Registers", "Accounts Package"]
 selection = st.sidebar.radio("Choose View", tabs)
 
 if selection == "Invoice Generator":
@@ -476,7 +476,7 @@ elif selection == "Registers":
                 ])
             st.success("Attendance saved successfully!")
 
-elif selection == "Expenses Ledger":
+elif selection == "Accounts Package":
     import pandas as pd
     import calendar
     from datetime import datetime
@@ -506,7 +506,7 @@ elif selection == "Expenses Ledger":
     if "trigger_reload" not in st.session_state:
         st.session_state["trigger_reload"] = False
 
-    tab1, tab2, tab3 = st.tabs(["Add Expense", "Overview", "Expense Records"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Add Expense", "Overview", "Expense Records", "Invoices Dashboard"])
 
     # Tab 1: Add Expense
     with tab1:
@@ -599,6 +599,55 @@ elif selection == "Expenses Ledger":
                 st.info("No expenses to display.")
     else:
         st.warning("New expense added. Click 'Refresh Data Now' to update the charts.")
+
+        with tab4:
+            st.subheader("Invoices Dashboard")
+
+            # Load invoice data (from your Google Sheet or wherever appropriate)
+            invoice_sheet = client.open("Groundswell-Business").worksheet("invoices")
+            invoice_data = invoice_sheet.get_all_records()
+            df = pd.DataFrame(invoice_data)
+
+            df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
+            df["Grand total"] = pd.to_numeric(df["Grand total"], errors="coerce")
+            df["Status"] = df["Status"].fillna("Unpaid")
+
+            # Filters
+            labels = df["Invoice label"].dropna().unique().tolist()
+            selected_labels = st.multiselect("Invoice Label", options=labels, default=labels)
+            selected_status = st.multiselect("Payment Status", options=df["Status"].unique(), default=df["Status"].unique())
+            selected_range = st.date_input("Date Range", value=(df["Date created"].min(), df["Date created"].max()))
+
+            filtered_df = df[
+                (df["Status"].isin(selected_status)) &
+                (df["Invoice label"].isin(selected_labels)) &
+                (df["Date created"] >= pd.to_datetime(selected_range[0])) &
+                (df["Date created"] <= pd.to_datetime(selected_range[1]))
+            ]
+
+            # KPIs
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Total Invoiced", f"£{filtered_df['Grand total'].sum():.2f}")
+            col2.metric("Paid", f"£{filtered_df[filtered_df['Status'] == 'Paid']['Grand total'].sum():.2f}")
+            col3.metric("Unpaid", f"£{filtered_df[filtered_df['Status'] == 'Unpaid']['Grand total'].sum():.2f}")
+
+            st.subheader("Invoices by Label")
+            st.dataframe(filtered_df[["Invoice label", "Student", "Grand total", "Status"]])
+
+            st.subheader("Monthly Invoice Trend")
+            monthly = filtered_df.groupby(filtered_df["Date created"].dt.to_period("M"))["Grand total"].sum().reset_index()
+            monthly["Month"] = monthly["Date created"].astype(str)
+            st.line_chart(monthly.set_index("Month"))
+
+            st.subheader("Revenue by Student")
+            student_totals = filtered_df.groupby("Student")["Grand total"].sum().sort_values(ascending=False)
+            st.bar_chart(student_totals)
+
+            with st.expander("See Filtered Invoice Data"):
+                st.dataframe(filtered_df)
+
+            # Optional: download
+            st.download_button("Download CSV", data=filtered_df.to_csv(index=False), file_name="filtered_invoices.csv")
 
 
 
