@@ -637,26 +637,26 @@ elif selection == "Finance v2":
             st.info("No expenses to display.")
 
     with tab3:
-    st.subheader("Upload New Expense")
-    with st.form("upload_expense_form", clear_on_submit=True):
-        exp_date = st.date_input("Date", value=datetime.today())
-        category = st.selectbox("Category", ["Costumes", "Studio Rent", "Music Subscriptions", "Travel", "Admin", "Other"])
-        description = st.text_input("Description")
-        amount = st.number_input("Amount (£)", min_value=0.0, step=0.5)
-        receipt_url = st.text_input("Receipt URL (optional)")
-        submitted = st.form_submit_button("Add Expense")
+        st.subheader("Upload New Expense")
+        with st.form("upload_expense_form", clear_on_submit=True):
+            exp_date = st.date_input("Date", value=datetime.today())
+            category = st.selectbox("Category", ["Costumes", "Studio Rent", "Music Subscriptions", "Travel", "Admin", "Other"])
+            description = st.text_input("Description")
+            amount = st.number_input("Amount (£)", min_value=0.0, step=0.5)
+            receipt_url = st.text_input("Receipt URL (optional)")
+            submitted = st.form_submit_button("Add Expense")
 
-        if submitted and description and amount > 0:
-            formatted_date = datetime.combine(exp_date, datetime.min.time()).strftime("%Y-%m-%d")
-            expenses_sheet.append_row([
-                formatted_date,
-                category,
-                description,
-                f"{amount:.2f}",
-                receipt_url
-            ])
-            st.success("Expense added successfully.")
-            st.rerun()
+            if submitted and description and amount > 0:
+                formatted_date = datetime.combine(exp_date, datetime.min.time()).strftime("%Y-%m-%d")
+                expenses_sheet.append_row([
+                    formatted_date,
+                    category,
+                    description,
+                    f"{amount:.2f}",
+                    receipt_url
+                ])
+                st.success("Expense added successfully.")
+                st.rerun()
 
     
                     
