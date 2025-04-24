@@ -569,7 +569,7 @@ elif selection == "Finance v2":
         else:
             st.info("No expenses to display.")
 
-elif selectio
+
 
     
                     
