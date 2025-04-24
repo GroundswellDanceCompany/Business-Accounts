@@ -657,7 +657,7 @@ elif selection == "Finance v2":
                 st.success("Expense added successfully.")
                 st.session_state["refresh_expenses"] = True
         
-            if submit_exp and desc and amt > 0:
+            if submitted and desc and amt > 0:
                 # Save to Google Sheet
                 expenses_sheet.append_row([
                     exp_date.strftime("%Y-%m-%d"),
