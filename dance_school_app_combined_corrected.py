@@ -672,15 +672,6 @@ elif selection == "Finance v2":
                 st.success("Expense added successfully.")
                 st.rerun()
 
-    # Tab 3: Full Year View
-    with tabs[2]:
-        st.subheader("Annual Summary")
-        if not df.empty:
-            year = st.selectbox("Year for Summary", sorted(df["Year"].unique(), reverse=True), key="summary_year")
-            summary = df[df["Year"] == year]
-            full_view = summary.groupby(["Month"])["Amount"].sum().reindex(range(1,13), fill_value=0)
-            full_view.index = [calendar.month_name[m] for m in full_view.index]
-            st.bar_chart(full_view)
-            st.metric("Total Expenses", f"£{summary['Amount'].sum():.2f}")
+    # 
                     
                                            
