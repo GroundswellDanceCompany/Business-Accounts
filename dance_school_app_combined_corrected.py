@@ -492,6 +492,16 @@ elif selection == "Finance v2":
     client = gspread.authorize(creds)
     expenses_sheet = client.open("Groundswell-Business").worksheet("expenses")
 
+    def load_expenses(sheet):
+    data = sheet.get_all_records(expected_headers=["Date", "Category", "Description", "Amount", "Receipt URL"])
+    df = pd.DataFrame(data)
+    if not df.empty:
+        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+        df["Amount"] = pd.to_numeric(df["Amount"], errors="coerce")
+        df["Month"] = df["Date"].dt.strftime("%B")
+        df["Year"] = df["Date"].dt.year.astype("Int64")
+        df["MonthNum"] = df["Date"].dt.month
+    return df
     # Track state for manual refresh
     if "trigger_reload" not in st.session_state:
         st.session_state["trigger_reload"] = False
@@ -500,6 +510,7 @@ elif selection == "Finance v2":
 
     # Tab 1: Add Expense
     with tab1:
+        expenses = load_expenses(expenses_sheet)
         st.subheader("Upload New Expense")
         with st.form("upload_expense_form", clear_on_submit=True):
             date = st.date_input("Date", value=datetime.today())
@@ -548,6 +559,7 @@ elif selection == "Finance v2":
 
         # Tab 2: Overview
         with tab2:
+            expenses = load_expenses(expenses_sheet)
             st.subheader("Monthly Profit & Loss Overview")
             if not expenses.empty:
                 monthly_summary = (
@@ -564,6 +576,7 @@ elif selection == "Finance v2":
 
         # Tab 3: Expense Records
         with tab3:
+            expenses = load_expenses(expenses_sheet)
             st.subheader("Filter and Export Expense Records")
             if not expenses.empty:
                 years = sorted(expenses["Year"].dropna().unique(), reverse=True)
