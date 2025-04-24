@@ -21,7 +21,7 @@ if selection == "Invoice Generator":
     sheet = client.open("Groundswell-Business").worksheet("invoices")
     
     # UI
-    st.title("Monthly Invoice Generator (with Dated Extras)")
+    st.title("Monthly Invoice Generator")
     
     st.header("Create New Invoice")
     student = st.text_input("Student Name")
@@ -483,7 +483,7 @@ elif selection == "Expenses Ledger":
     import gspread
     from oauth2client.service_account import ServiceAccountCredentials
 
-    st.header("Finance v2 — Accounts Dashboard")
+    st.header("Expenses Dashboard")
 
     # Google Sheets Setup
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
