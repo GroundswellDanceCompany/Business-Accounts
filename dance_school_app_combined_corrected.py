@@ -577,7 +577,7 @@ elif selection == "Finance v2":
     import gspread
     from oauth2client.service_account import ServiceAccountCredentials
 
-    st.title("Finance v2 - Expense Tracker & Dashboard")
+    st.title("Finance v2 - All-in-One Accounts")
 
     # Google Sheets setup
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -588,57 +588,46 @@ elif selection == "Finance v2":
 
     # Load data
     raw_data = expenses_sheet.get_all_records()
-    expenses = pd.DataFrame(raw_data)
+    df = pd.DataFrame(raw_data)
+    df.columns = [col.strip() for col in df.columns]
 
-    # Clean up headers
-    expenses.columns = [col.strip() for col in expenses.columns]
+    tabs = st.tabs(["Monthly Dashboard", "Add Expense", "Full Year View"])
 
-    if expenses.empty or "Date" not in expenses.columns:
-        st.info("No expenses data found or missing 'Date' column.")
-    else:
-        # Format and clean data
-        expenses["Date"] = pd.to_datetime(expenses["Date"], errors="coerce")
-        expenses = expenses.dropna(subset=["Date"])
-        expenses["Amount"] = pd.to_numeric(expenses["Amount"], errors="coerce")
-        expenses = expenses.dropna(subset=["Amount"])
-        expenses["Year"] = expenses["Date"].dt.year
-        expenses["Month"] = expenses["Date"].dt.month
-        expenses["MonthLabel"] = expenses["Date"].dt.strftime("%B %Y")
+    # Tab 1: Monthly Dashboard
+    with tabs[0]:
+        st.subheader("Monthly Overview")
+        if df.empty or "Date" not in df.columns:
+            st.info("No data found or missing 'Date' column.")
+        else:
+            df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+            df = df.dropna(subset=["Date"])
+            df["Amount"] = pd.to_numeric(df["Amount"], errors="coerce")
+            df = df.dropna(subset=["Amount"])
+            df["Year"] = df["Date"].dt.year
+            df["Month"] = df["Date"].dt.month
+            df["MonthLabel"] = df["Date"].dt.strftime("%B %Y")
 
-        # Filter
-        st.subheader("Filter Expenses")
-        selected_year = st.selectbox("Year", sorted(expenses["Year"].unique(), reverse=True))
-        selected_month = st.selectbox("Month", list(calendar.month_name)[1:])
-        selected_month_num = list(calendar.month_name).index(selected_month)
+            year = st.selectbox("Select Year", sorted(df["Year"].unique(), reverse=True))
+            month = st.selectbox("Select Month", list(calendar.month_name)[1:])
+            month_num = list(calendar.month_name).index(month)
 
-        filtered = expenses[
-            (expenses["Year"] == selected_year) &
-            (expenses["Month"] == selected_month_num)
-        ]
+            filtered = df[(df["Year"] == year) & (df["Month"] == month_num)]
+            for col in ["Description", "Receipt URL"]:
+                if col not in df.columns:
+                    df[col] = ""
 
-        st.subheader(f"Expenses for {selected_month} {selected_year}")
-        display_cols = ["Date", "Category", "Description", "Amount", "Receipt URL"]
-        for col in display_cols:
-            if col not in expenses.columns:
-                expenses[col] = ""
-        st.dataframe(filtered[display_cols])
+            st.dataframe(filtered[["Date", "Category", "Description", "Amount", "Receipt URL"]])
+            st.metric("Total This Month", f"£{filtered['Amount'].sum():.2f}")
 
-        st.metric("Total This Month", f"£{filtered['Amount'].sum():.2f}")
+            ytd = df[df["Year"] == year]
+            ytd_summary = ytd.groupby("MonthLabel")["Amount"].sum().reset_index()
+            st.subheader("Year-to-Date Expense Chart")
+            st.bar_chart(data=ytd_summary.set_index("MonthLabel"))
 
-        # Bar Chart: YTD
-        st.subheader("Monthly Profit & Loss Overview")
-        ytd = expenses[expenses["Year"] == selected_year]
-        ytd["MonthLabel"] = ytd["Date"].dt.strftime("%B %Y")
-        monthly_summary = ytd.groupby("MonthLabel")["Amount"].sum().reset_index()
-        st.bar_chart(data=monthly_summary.set_index("MonthLabel"))
-
-        st.markdown(f"### Total Expenses (YTD): £{ytd['Amount'].sum():.2f}")
-
-        st.divider()
-
-        # Form to Add Expense
-        st.subheader("Add New Expense")
-        with st.form("add_expense_v2", clear_on_submit=True):
+    # Tab 2: Add Expense
+    with tabs[1]:
+        st.subheader("Add a New Expense")
+        with st.form("add_expense_form_v2", clear_on_submit=True):
             exp_date = st.date_input("Date", value=datetime.today())
             category = st.selectbox("Category", ["Studio Rent", "Costumes", "Music License", "Travel", "Admin", "Other"])
             desc = st.text_input("Description")
@@ -656,5 +645,16 @@ elif selection == "Finance v2":
                 ])
                 st.success("Expense added successfully!")
                 st.rerun()
+
+    # Tab 3: Full Year View
+    with tabs[2]:
+        st.subheader("Annual Summary")
+        if not df.empty:
+            year = st.selectbox("Year for Summary", sorted(df["Year"].unique(), reverse=True), key="summary_year")
+            summary = df[df["Year"] == year]
+            full_view = summary.groupby(["Month"])["Amount"].sum().reindex(range(1,13), fill_value=0)
+            full_view.index = [calendar.month_name[m] for m in full_view.index]
+            st.bar_chart(full_view)
+            st.metric("Total Expenses", f"£{summary['Amount'].sum():.2f}")
                     
                                            
