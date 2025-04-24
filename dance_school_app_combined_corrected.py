@@ -481,61 +481,120 @@ elif selection == "Accounts Package":
     else:
         st.warning("New expense added. Click 'Refresh Data Now' to update the charts.")
 
-        with tab4:
+        with tab4:       
             st.subheader("Invoices Dashboard")
-            st.write("DEBUG: Entered tab4")
 
-            try:
-                invoice_sheet = client.open("Groundswell-Business").worksheet("invoices")
-                invoice_data = invoice_sheet.get_all_records()
+            def load_data():
+                data = sheet.get_all_records()
+                return pd.DataFrame(data)
+    
+            df = load_data()
+    
+            # Parse data with correct column names
+            df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
+            df["Grand total"] = pd.to_numeric(df["Grand total"], errors="coerce")
+            df["Status"] = df["Status"].fillna("Unpaid")
+    
+            st.title("Dance School Invoice Dashboard")
+    
+            # Sidebar filters
+            with st.sidebar:
+                st.header("Filters")
 
-                if not invoice_data:
-                    st.info("No invoices found.")
-                else:
-                    df = pd.DataFrame(invoice_data)
-                    df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
-                    df["Grand total"] = pd.to_numeric(df["Grand total"], errors="coerce")
-                    df["Status"] = df["Status"].fillna("Unpaid")
-
-                    st.write("Invoice data loaded successfully.")  # Debug check
-
-                    # Filter options
-                    labels = df["Invoice label"].dropna().unique().tolist() if "Invoice label" in df else df["Student"].unique().tolist()
+                # Filter by custom Invoice Label
+                if "Invoice label" in df.columns:
+                    labels = df["Invoice label"].dropna().unique().tolist()
                     selected_labels = st.multiselect("Invoice Label", options=labels, default=labels)
-                    selected_status = st.multiselect("Status", options=df["Status"].unique(), default=df["Status"].unique())
+                else:
+                    selected_labels = df["Student"].unique().tolist()  # fallback
 
-                    date_min = df["Date created"].min()
-                    date_max = df["Date created"].max()
-                    selected_range = st.date_input("Date Range", (date_min, date_max))
+                selected_status = st.multiselect("Payment Status", options=df["Status"].unique(), default=df["Status"].unique())
+                min_date = df["Date created"].min()
+                max_date = df["Date created"].max()
+                selected_range = st.date_input("Date Range", value=(min_date, max_date))
+    
+            # Apply filters
+            filtered_df = df[
+            (df["Status"].isin(selected_status)) &
+            (df["Invoice label"].isin(selected_labels)) &
+            (df["Date created"] >= pd.to_datetime(selected_range[0])) &
+            (df["Date created"] <= pd.to_datetime(selected_range[1]))
+        ]
+    
+            # KPI summary
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Total Invoiced", f"£{filtered_df['Grand total'].sum():.2f}")
+            col2.metric("Paid", f"£{filtered_df[filtered_df['Status'] == 'Paid']['Grand total'].sum():.2f}")
+            col3.metric("Unpaid", f"£{filtered_df[filtered_df['Status'] == 'Unpaid']['Grand total'].sum():.2f}")
+    
+            # Totals by student
+            st.subheader("Invoice Summary by Label")
+            st.dataframe(filtered_df[["Invoice label", "Student", "Grand total", "Status"]])
+    
+            # Monthly trend
+            st.subheader("Monthly Invoice Trend")
+            monthly = filtered_df.groupby(filtered_df["Date created"].dt.to_period("M"))["Grand total"].sum().reset_index()
+            monthly["Month"] = monthly["Date created"].astype(str)
+            st.line_chart(monthly.set_index("Month"))
+    
+            # Revenue by Student breakdown
+            st.subheader("Revenue by Student")
+            student_totals = filtered_df.groupby("Student")["Grand total"].sum().sort_values(ascending=False)
+            st.bar_chart(student_totals)
+    
+            # Full data view
+            with st.expander("See Filtered Invoice Data"):
+                st.dataframe(filtered_df)
 
-                    filtered_df = df[
-                        df["Status"].isin(selected_status) &
-                        df["Invoice label"].isin(selected_labels) &
-                        (df["Date created"] >= pd.to_datetime(selected_range[0])) &
-                        (df["Date created"] <= pd.to_datetime(selected_range[1]))
-                    ]
+            # Add 'Mark as Paid' functionality
+            st.subheader("Mark Invoices as Paid")
 
-                    # KPI summary
-                    col1, col2, col3 = st.columns(3)
-                    col1.metric("Total Invoiced", f"£{filtered_df['Grand total'].sum():.2f}")
-                    col2.metric("Paid", f"£{filtered_df[filtered_df['Status'] == 'Paid']['Grand total'].sum():.2f}")
-                    col3.metric("Unpaid", f"£{filtered_df[filtered_df['Status'] != 'Paid']['Grand total'].sum():.2f}")
+            unpaid_invoices = df[df["Status"] != "Paid"]
+           if not unpaid_invoices.empty:
+                selected_to_mark = st.multiselect(
+                    "Select Invoice Labels to Mark as Paid",
+                    options=unpaid_invoices["Invoice label"].dropna().unique().tolist()
+                )
 
-                    st.subheader("Invoices by Student")
-                    st.dataframe(filtered_df[["Invoice label", "Student", "Grand total", "Status"]])
+                if st.button("Mark Selected as Paid"):
+                    worksheet = sheet
+                    all_data = worksheet.get_all_values()
+                    headers = all_data[0]
+                    label_index = headers.index("Invoice label")
+                    status_index = headers.index("Status")
+            
+                    updated = 0
+            
+                    for i, row in enumerate(all_data[1:], start=2):
+                        label = row[label_index].strip()
+                        if label in [s.strip() for s in selected_to_mark]:
+                            worksheet.update_cell(i, status_index + 1, "Paid")
+                            updated += 1
 
-                    st.subheader("Monthly Invoicing Trend")
-                    monthly = filtered_df.groupby(filtered_df["Date created"].dt.to_period("M"))["Grand total"].sum().reset_index()
-                    monthly["Month"] = monthly["Date created"].astype(str)
-                    st.line_chart(monthly.set_index("Month"))
+                    if updated:
+                        st.success(f"{updated} invoice(s) marked as Paid.")
+                        st.info("Marked as Paid. Please refresh manually or use the button below.")
+                        if st.button("Refresh Now"):
+                            st.experimental_rerun()
+                
+                    else:
+                        st.warning("No matching rows were found to update.")
 
-                    # Optional CSV export
-                    st.download_button("Download Filtered CSV", filtered_df.to_csv(index=False), "filtered_invoices.csv")
+            else:
+                st.info("No unpaid invoices found.")
 
-            except Exception as e:
-                st.error(f"Error loading invoices: {e}")
+            # CSV export
+            st.download_button("Download Filtered Data as CSV", data=filtered_df.to_csv(index=False), file_name="invoices_filtered.csv", mime="text/csv")
 
 
+
+
+            
+          
+
+                    
+                    
+               
 
 
         
