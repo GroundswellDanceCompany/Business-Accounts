@@ -2,7 +2,8 @@ import streamlit as st
 
 st.set_page_config(page_title="Dance School OS", layout="wide")
 
-tabs = ["Invoice Generator", "Student Manager", "Registers", "Accounts Package"]
+tabs = ["Invoice Generator", "Student Manager", "Registers", "Accounts Package", "Invoices Dashboard 
+"]
 selection = st.sidebar.radio("Choose View", tabs)
 
 if selection == "Invoice Generator":
@@ -481,7 +482,7 @@ elif selection == "Accounts Package":
     else:
         st.warning("New expense added. Click 'Refresh Data Now' to update the charts.")
 
-elif selection == "Dashboard":
+elif selection == "Invoices Dashboard":
     import json
     import streamlit as st
     import gspread
