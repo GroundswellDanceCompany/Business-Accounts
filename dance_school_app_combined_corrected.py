@@ -627,6 +627,10 @@ elif selection == "Finance v2":
     # Tab 2: Add Expense
     with tabs[1]:
         st.subheader("Add a New Expense")
+    
+        # Moved to top of tab to ensure it's ready
+        expenses_sheet = client.open("Groundswell-Business").worksheet("expenses")
+
         with st.form("add_expense_form_v2", clear_on_submit=True):
             exp_date = st.date_input("Date", value=datetime.today())
             category = st.selectbox("Category", ["Studio Rent", "Costumes", "Music License", "Travel", "Admin", "Other"])
@@ -635,7 +639,9 @@ elif selection == "Finance v2":
             receipt_url = st.text_input("Receipt URL (optional)")
 
             submit_exp = st.form_submit_button("Add Expense")
+        
             if submit_exp and desc and amt > 0:
+                # Save to Google Sheet
                 expenses_sheet.append_row([
                     exp_date.strftime("%Y-%m-%d"),
                     category,
