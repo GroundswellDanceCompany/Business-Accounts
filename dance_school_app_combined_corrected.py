@@ -531,7 +531,7 @@ elif selection == "Accounts Dashboard":
             st.error("Missing 'Date' column in your sheet.")
         else:
             expenses["Date"] = pd.to_datetime(expenses["Date"], errors="coerce")
-            expenses["Amount"] = pd.to_numeric(expenses["Amount"], errors="coerce")
+            expenses["Month"] = expenses["Date"].dt.to_period("M").astype(str)
             expenses["Year"] = expenses["Date"].dt.year.astype("Int64")
             expenses["Month"] = expenses["Date"].dt.month
 
