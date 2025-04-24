@@ -613,7 +613,7 @@ elif selection == "Finance v2":
 
             st.bar_chart(monthly_summary.set_index("Label")["Amount"])
 
-            st.metric("Total Expenses (YTD)", f"Â£{expenses['Amount'].sum():.2f}")
+            st.metric("Total Expenses (YTD)", f"£{expenses['Amount'].sum():.2f}")
         else:
             st.info("No expenses data available yet.")
 
@@ -646,7 +646,7 @@ elif selection == "Finance v2":
             date = st.date_input("Date", value=datetime.today())
             category = st.selectbox("Category", ["Costumes", "Studio Rent", "Music Subscriptions", "Travel", "Admin", "Other"])
             description = st.text_input("Description")
-            amount = st.number_input("Amount (Â£)", min_value=0.0, step=0.5)
+            amount = st.number_input("Amount (£)", min_value=0.0, step=0.5)
             receipt_url = st.text_input("Receipt URL (Google Drive, Dropbox, etc.)")
             submitted = st.form_submit_button("Add Expense")
 
