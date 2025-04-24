@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Dance School OS", layout="wide")
 
-tabs = ["Invoice Generator", "Dashboard", "Student Manager", "Registers", "Accounts Dashboard", "Finance v2]
+tabs = ["Invoice Generator", "Dashboard", "Student Manager", "Registers", "Accounts Dashboard", "Finance v2"]
 selection = st.sidebar.radio("Choose View", tabs)
 
 if selection == "Invoice Generator":
