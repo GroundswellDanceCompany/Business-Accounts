@@ -657,16 +657,19 @@ elif selection == "Finance v2":
                 st.success("Expense added successfully.")
                 st.session_state["refresh_expenses"] = True
         
-            if submitted and desc and amt > 0:
-                # Save to Google Sheet
+            from datetime import datetime
+
+            # ... inside your form block
+            if submitted and description and amount > 0:
+                formatted_date = datetime.combine(exp_date, datetime.min.time()).strftime("%Y-%m-%d")
                 expenses_sheet.append_row([
-                    exp_date.strftime("%Y-%m-%d"),
+                    formatted_date,
                     category,
-                    desc,
-                    f"{amt:.2f}",
+                    description,
+                    f"{amount:.2f}",
                     receipt_url
                 ])
-                st.success("Expense added successfully!")
+                st.success("Expense added successfully.")
                 st.rerun()
 
     # Tab 3: Full Year View
