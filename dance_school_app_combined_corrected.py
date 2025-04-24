@@ -550,7 +550,7 @@ elif selection == "Accounts Package":
             st.subheader("Mark Invoices as Paid")
 
             unpaid_invoices = df[df["Status"] != "Paid"]
-           if not unpaid_invoices.empty:
+            if not unpaid_invoices.empty:
                 selected_to_mark = st.multiselect(
                     "Select Invoice Labels to Mark as Paid",
                     options=unpaid_invoices["Invoice label"].dropna().unique().tolist()
