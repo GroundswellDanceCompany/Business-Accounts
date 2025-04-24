@@ -531,7 +531,7 @@ elif selection == "Accounts Dashboard":
             st.error("Missing 'Date' column in your sheet.")
         else:
             expenses["Date"] = pd.to_datetime(expenses["Date"], errors="coerce")
-            expenses["Month"] = expenses["Date"].dt.to_period("M").astype(str)
+            expenses["Amount"] = pd.to_numeric(expenses["Amount"], errors="coerce")
             expenses["Year"] = expenses["Date"].dt.year.astype("Int64")
             expenses["Month"] = expenses["Date"].dt.month
 
@@ -577,7 +577,7 @@ elif selection == "Finance v2":
     from datetime import datetime
     import calendar
 
-    st.header("Accounts Dashboard")
+    st.header("Finance v2")
 
     # Google Sheets Setup
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -594,7 +594,7 @@ elif selection == "Finance v2":
         # Parse dates and ensure numeric columns
         expenses["Date"] = pd.to_datetime(expenses["Date"], errors="coerce")
         expenses["Amount"] = pd.to_numeric(expenses["Amount"], errors="coerce")
-        expenses["Month"] = expenses["Date"].dt.strftime("%B")
+        expenses["Month"] = expenses["Date"].dt.to_period("M").astype(str)
         expenses["Year"] = expenses["Date"].dt.year.astype("Int64")
         expenses["MonthNum"] = expenses["Date"].dt.month
     else:
@@ -606,6 +606,7 @@ elif selection == "Finance v2":
     with tab1:
         st.subheader("Monthly Profit & Loss Overview")
         if not expenses.empty:
+            monthly_totals = expenses.groupby("Month")["Amount"].sum().reset_index()
             # Monthly totals
             monthly_summary = expenses.groupby(["Year", "MonthNum", "Month"]).sum(numeric_only=True)["Amount"].reset_index()
             monthly_summary = monthly_summary.sort_values(["Year", "MonthNum"])
