@@ -364,7 +364,7 @@ elif selection == "Accounts Package":
     import gspread
     from oauth2client.service_account import ServiceAccountCredentials
 
-    st.header("Expenses Dashboard")
+    st.header("Accounts Package")
 
     # Google Sheets Setup
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -483,6 +483,7 @@ elif selection == "Accounts Package":
 
         with tab4:
             st.subheader("Invoices Dashboard")
+            st.write("DEBUG: Entered tab4")
 
             try:
                 invoice_sheet = client.open("Groundswell-Business").worksheet("invoices")
