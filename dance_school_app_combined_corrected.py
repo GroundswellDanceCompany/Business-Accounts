@@ -213,10 +213,10 @@ def generate_invoice_doc(student_name, date_from, date_to, class_list, extras, t
             
         st.success(f"Invoice created for {student} (£{grand_total:.2f})")
 
-        
+        st.session_state.extras = []
     
         # Clear extras after invoice creation
-        #st.session_state.extras = []
+        
 
 elif selection == "Student Manager":
     import streamlit as st
