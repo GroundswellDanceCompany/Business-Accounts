@@ -173,7 +173,12 @@ if st.session_state.extras:
     # Notes
 notes = st.text_area("Notes (optional)")
     
-   
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds_dict = st.secrets["gcp_service_account"]
+creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+client = gspread.authorize(creds)
+sheet = client.open("Groundswell-Business").worksheet("invoices")
+
 if st.button("Generate Invoice"):
     total_class_rate = sum(rate for _, rate in rates)
     class_total = classes_attended * total_class_rate
