@@ -191,10 +191,14 @@ def generate_invoice_doc(student_name, date_from, date_to, class_list, extras, t
         )
         invoice_label = f"{student} - {invoice_start.strftime('%b %Y')}"
 
-        row = [date_created, invoice_period, student, class_names, classes_attended, total_class_rate, extra_names, extras_total, grand_total, "Unpaid", notes, invoice_label]
+        row = [
+            date_created, invoice_period, student, class_names, classes_attended,
+            total_class_rate, extra_names, extras_total, grand_total,
+            "Unpaid", notes, invoice_label
+        ]
         sheet.append_row(row)
 
-    # Generate and offer download of Word document
+        # Word doc generation
         invoice_path = generate_invoice_doc(
             student_name=student,
             date_from=invoice_start.strftime("%Y-%m-%d"),
