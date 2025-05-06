@@ -120,7 +120,8 @@ available_extras = {
     "Session-Based": [
         "Extra Rehearsal - Competition",
         "Extra Rehearsal - Show",
-        "Private Lesson"
+        "Private Lesson",
+        "Open House Class"
     ],    
     "One-Off": [
         "Costume Fee", 
@@ -435,7 +436,7 @@ elif selection == "Accounts Package":
         expenses = load_expenses(expenses_sheet)
         st.subheader("Upload New Expense")
         with st.form("upload_expense_form", clear_on_submit=True):
-            date = st.date_input("Date", value=datetime.today())
+            expense_date = st.date_input("Date", value=datetime.today())
             category = st.selectbox("Category", ["Costumes", "Studio Rent", "Music Subscriptions", "Travel", "Admin", "Other"])
             description = st.text_input("Description")
             amount = st.number_input("Amount (£)", min_value=0.0, step=0.5)
@@ -444,14 +445,14 @@ elif selection == "Accounts Package":
 
             if submitted:
                 expenses_sheet.append_row([
-                    date.strftime("%Y-%m-%d"),
+                    expense_date.strftime("%Y-%m-%d"),
                     category,
                     description,
                     f"{amount:.2f}",
                     receipt_url
                 ])
-                st.session_state["trigger_reload"] = True
-                st.success("Expense added successfully. Click 'Refresh Data Now' to update dashboard.")
+                st.success("Expense added successfully.")
+                st.session_state["refresh_expenses"] = True
 
     # Refresh button logic
     st.divider()
