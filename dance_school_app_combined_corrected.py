@@ -213,16 +213,7 @@ def generate_invoice_doc(student_name, date_from, date_to, class_list, extras, t
             
         st.success(f"Invoice created for {student} (£{grand_total:.2f})")
 
-        whatsapp_msg = (
-            f"Hi {student}, your invoice for the period {invoice_period} is ready.\n"
-            f"Total: £{grand_total:.2f}\n"
-            f"Classes: {class_names} ({classes_attended} at £{total_class_rate}/class)"
-        )
-        if st.session_state.extras:
-            whatsapp_msg += f"\nExtras: {extra_names}"
-        whatsapp_msg += "\nThank you!"
-        st.write("**WhatsApp/Email Message:**")
-        st.code(whatsapp_msg)
+        
     
         # Clear extras after invoice creation
         #st.session_state.extras = []
