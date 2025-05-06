@@ -174,50 +174,50 @@ def generate_invoice_doc(student_name, date_from, date_to, class_list, extras, t
     notes = st.text_area("Notes (optional)")
     
    
-    if st.button("Generate Invoice"):
-        total_class_rate = sum(rate for _, rate in rates)
-        class_total = classes_attended * total_class_rate
-        extras_total = sum(extra["amount"] for extra in st.session_state.extras)
-        grand_total = class_total + extras_total
+if st.button("Generate Invoice"):
+    total_class_rate = sum(rate for _, rate in rates)
+    class_total = classes_attended * total_class_rate
+    extras_total = sum(extra["amount"] for extra in st.session_state.extras)
+    grand_total = class_total + extras_total
 
-        invoice_period = f"{invoice_start} to {invoice_end}"
-        date_created = datetime.now().strftime("%Y-%m-%d")
-        class_names = ", ".join(cls for cls, _ in rates)
-        extra_names = ", ".join(
-            f"{ex['name']} ({ex['type']}" +
-            (f" on {ex['date']}" if ex['type'] == "Session-Based" and ex['date'] else "") +
-            f"): £{ex['amount']:.2f}"
-            for ex in st.session_state.extras
+    invoice_period = f"{invoice_start} to {invoice_end}"
+    date_created = datetime.now().strftime("%Y-%m-%d")
+    class_names = ", ".join(cls for cls, _ in rates)
+    extra_names = ", ".join(
+        f"{ex['name']} ({ex['type']}" +
+        (f" on {ex['date']}" if ex['type'] == "Session-Based" and ex['date'] else "") +
+        f"): £{ex['amount']:.2f}"
+        for ex in st.session_state.extras
+    )
+    invoice_label = f"{student} - {invoice_start.strftime('%b %Y')}"
+
+    row = [
+        date_created, invoice_period, student, class_names, classes_attended,
+        total_class_rate, extra_names, extras_total, grand_total,
+        "Unpaid", notes, invoice_label
+    ]
+    sheet.append_row(row)
+
+    # Word doc generation
+    invoice_path = generate_invoice_doc(
+        student_name=student,
+        date_from=invoice_start.strftime("%Y-%m-%d"),
+        date_to=invoice_end.strftime("%Y-%m-%d"),
+        class_list=[f"{cls}: £{rate:.2f}" for cls, rate in rates],
+        extras=[f"{ex['name']} – £{ex['amount']:.2f}" for ex in st.session_state.extras],
+        total=grand_total
+    )
+
+    with open(invoice_path, "rb") as file:
+        st.download_button(
+            label="Download Invoice (Word)",
+            data=file,
+            file_name=f"{student}_invoice.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
-        invoice_label = f"{student} - {invoice_start.strftime('%b %Y')}"
 
-        row = [
-            date_created, invoice_period, student, class_names, classes_attended,
-            total_class_rate, extra_names, extras_total, grand_total,
-            "Unpaid", notes, invoice_label
-        ]
-        sheet.append_row(row)
-
-        # Word doc generation
-        invoice_path = generate_invoice_doc(
-            student_name=student,
-            date_from=invoice_start.strftime("%Y-%m-%d"),
-            date_to=invoice_end.strftime("%Y-%m-%d"),
-            class_list=[f"{cls}: £{rate:.2f}" for cls, rate in rates],
-            extras=[f"{ex['name']} – £{ex['amount']:.2f}" for ex in st.session_state.extras],
-            total=grand_total
-        )
-
-        with open(invoice_path, "rb") as file:
-            st.download_button(
-                label="Download Invoice (Word)",
-                data=file,
-                file_name=f"{student}_invoice.docx",
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            )
-
-            st.success(f"Invoice created for {student} (£{grand_total:.2f})")
-            st.session_state.extras = []
+    st.success(f"Invoice created for {student} (£{grand_total:.2f})")
+    st.session_state.extras = []
         
 
 elif selection == "Student Manager":
