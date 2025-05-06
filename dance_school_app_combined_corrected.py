@@ -203,17 +203,17 @@ def generate_invoice_doc(student_name, date_from, date_to, class_list, extras, t
                 total=grand_total
             )
 
-        with open(invoice_path, "rb") as file:
-            st.download_button(
-                label="Download Invoice (Word)",
-                data=file,
-                file_name=f"{student}_invoice.docx",
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            )
+            with open(invoice_path, "rb") as file:
+                st.download_button(
+                    label="Download Invoice (Word)",
+                    data=file,
+                    file_name=f"{student}_invoice.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
             
-        st.success(f"Invoice created for {student} (£{grand_total:.2f})")
+            st.success(f"Invoice created for {student} (£{grand_total:.2f})")
 
-        st.session_state.extras = []
+            st.session_state.extras = []
     
         # Clear extras after invoice creation
         
