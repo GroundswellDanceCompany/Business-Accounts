@@ -174,24 +174,24 @@ def generate_invoice_doc(student_name, date_from, date_to, class_list, extras, t
     notes = st.text_area("Notes (optional)")
     
     # Final calculation and invoice creation
-        if st.button("Generate Invoice"):
-            total_class_rate = sum(rate for _, rate in rates)
-            class_total = classes_attended * total_class_rate
-            extras_total = sum(extra["amount"] for extra in st.session_state.extras)
-            grand_total = class_total + extras_total
+    if st.button("Generate Invoice"):
+        total_class_rate = sum(rate for _, rate in rates)
+        class_total = classes_attended * total_class_rate
+        extras_total = sum(extra["amount"] for extra in st.session_state.extras)
+        grand_total = class_total + extras_total
     
-            invoice_period = f"{invoice_start} to {invoice_end}"
-            date_created = datetime.now().strftime("%Y-%m-%d")
-            class_names = ", ".join(cls for cls, _ in rates)
-            extra_names = ", ".join(
-            f"{ex['name']} ({ex['type']}" +
-            (f" on {ex['date']}" if ex['type'] == "Session-Based" and ex['date'] else "") +
-            f"): £{ex['amount']:.2f}"
-            for ex in st.session_state.extras
-        )
-            invoice_label = f"{student} - {invoice_start.strftime('%b %Y')}"
-            row = [date_created, invoice_period, student, class_names, classes_attended, total_class_rate, extra_names, extras_total, grand_total, "Unpaid", notes, invoice_label]
-            sheet.append_row(row)
+        invoice_period = f"{invoice_start} to {invoice_end}"
+        date_created = datetime.now().strftime("%Y-%m-%d")
+        class_names = ", ".join(cls for cls, _ in rates)
+        extra_names = ", ".join(
+        f"{ex['name']} ({ex['type']}" +
+        (f" on {ex['date']}" if ex['type'] == "Session-Based" and ex['date'] else "") +
+        f"): £{ex['amount']:.2f}"
+        for ex in st.session_state.extras
+    )
+        invoice_label = f"{student} - {invoice_start.strftime('%b %Y')}"
+        row = [date_created, invoice_period, student, class_names, classes_attended, total_class_rate, extra_names, extras_total, grand_total, "Unpaid", notes, invoice_label]
+        sheet.append_row(row)
 
             if st.button("Generate Invoice"):
                 invoice_path = generate_invoice_doc(
