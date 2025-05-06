@@ -194,7 +194,7 @@ def generate_invoice_doc(student_name, date_from, date_to, class_list, extras, t
         sheet.append_row(row)
 
         if st.button("Generate Invoice"):
-            invoice_path = generate_invoice_doc(
+            invoice_path = generate_invoice_doc()
                 student_name=student,
                 date_from=invoice_start.strftime("%Y-%m-%d"),
                 date_to=invoice_end.strftime("%Y-%m-%d"),
