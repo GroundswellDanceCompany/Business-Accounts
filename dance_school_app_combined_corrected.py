@@ -12,6 +12,31 @@ if selection == "Invoice Generator":
     import pandas as pd
     from oauth2client.service_account import ServiceAccountCredentials
     from datetime import datetime, date, timedelta
+    import os
+    
+    from docx import Document
+
+def generate_invoice_doc(student_name, date_from, date_to, class_list, extras, total, save_path="generated_invoice.docx"):
+    template_path = "invoice_template.docx"  # adjust path if needed
+    doc = Document(template_path)
+
+    # Replace placeholders
+    for paragraph in doc.paragraphs:
+        if "{{student_name}}" in paragraph.text:
+            paragraph.text = paragraph.text.replace("{{student_name}}", student_name)
+        if "{{date_from}}" in paragraph.text:
+            paragraph.text = paragraph.text.replace("{{date_from}}", date_from)
+        if "{{date_to}}" in paragraph.text:
+            paragraph.text = paragraph.text.replace("{{date_to}}", date_to)
+        if "{{class_list}}" in paragraph.text:
+            paragraph.text = paragraph.text.replace("{{class_list}}", "\n".join(class_list))
+        if "{{extras}}" in paragraph.text:
+            paragraph.text = paragraph.text.replace("{{extras}}", "\n".join(extras))
+        if "{{total}}" in paragraph.text:
+            paragraph.text = paragraph.text.replace("{{total}}", f"{total:.2f}")
+
+    doc.save(save_path)
+    return save_path
     
     # Google Sheets setup using Streamlit secrets
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -167,9 +192,28 @@ if selection == "Invoice Generator":
         invoice_label = f"{student} - {invoice_start.strftime('%b %Y')}"
         row = [date_created, invoice_period, student, class_names, classes_attended, total_class_rate, extra_names, extras_total, grand_total, "Unpaid", notes, invoice_label]
         sheet.append_row(row)
-    
+
+        if st.button("Generate Invoice"):
+            invoice_path = generate_invoice_doc(
+                student_name=student,
+                date_from=invoice_start.strftime("%Y-%m-%d"),
+                date_to=invoice_end.strftime("%Y-%m-%d"),
+                class_list=[f"{cls}: £{rate:.2f}" for cls, rate in st.session_state.selected_classes],
+                extras=[f"{ex['name']} – £{ex['amount']:.2f}" for ex in st.session_state.extras],
+                total=grand_total
+            )
+
+            with open(invoice_path, "rb") as file:
+                st.download_button(
+                    label="Download Invoice (Word)",
+                    data=file,
+                    file_name=f"{student}_invoice.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
+            
         st.success(f"Invoice created for {student} (£{grand_total:.2f})")
-    
+
+        
         whatsapp_msg = (
             f"Hi {student}, your invoice for the period {invoice_period} is ready.\n"
             f"Total: £{grand_total:.2f}\n"
