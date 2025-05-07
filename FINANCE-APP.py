@@ -44,188 +44,188 @@ def generate_invoice_doc(student_name, date_from, date_to, class_list, extras, t
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
     sheet = client.open("Groundswell-Business").worksheet("invoices")
+
+if selection == "Invoice Generator":
+
+    st.title("Monthly Invoice Generator")
     
-    # UI
-st.title("Monthly Invoice Generator")
+    st.header("Create New Invoice")
+    student = st.text_input("Student Name")
     
-st.header("Create New Invoice")
-student = st.text_input("Student Name")
+    # Invoice period
+    today = date.today()
+    invoice_start = st.date_input("Invoice Start Date", value=today)
+    invoice_end = st.date_input("Invoice End Date", value=today + timedelta(weeks=4))
+    invoice_label = st.text_input("Custom Invoice Label (e.g. Maya - April 2025)", value=f"{student} - {invoice_start.strftime('%b %Y')}")
     
-# Invoice period
-today = date.today()
-invoice_start = st.date_input("Invoice Start Date", value=today)
-invoice_end = st.date_input("Invoice End Date", value=today + timedelta(weeks=4))
-invoice_label = st.text_input("Custom Invoice Label (e.g. Maya - April 2025)", value=f"{student} - {invoice_start.strftime('%b %Y')}")
+    selected_classes = st.multiselect("Select Classes", [
+        "Junior Ballet", "Intermediate Ballet",
+        "Junior Contemporary", "Intermediate Contemporary",
+        "Junior Jazz", "Advanced Jazz",
+        "Junior House & Hip Hop", "Advanced House & Hip Hop",
+        "Junior Waacking & Locking", "Advanced Waacking & Locking",
+        "Tap Class", "Commercial", "Private"
+    ])
     
-selected_classes = st.multiselect("Select Classes", [
-    "Junior Ballet", "Intermediate Ballet",
-    "Junior Contemporary", "Intermediate Contemporary",
-    "Junior Jazz", "Advanced Jazz",
-    "Junior House & Hip Hop", "Advanced House & Hip Hop",
-    "Junior Waacking & Locking", "Advanced Waacking & Locking",
-    "Tap Class", "Commercial", "Private"
-])
+    age_group = st.selectbox("Age Group", ["Mini (3-5)", "Junior (6-12)", "Teen (13-16)", "Adult"])
     
-age_group = st.selectbox("Age Group", ["Mini (3-5)", "Junior (6-12)", "Teen (13-16)", "Adult"])
+    # Price chart
+    price_chart = {
+        "Junior Ballet": {"Mini (3-5)": 5, "Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
+        "Intermediate Ballet": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
+        "Junior Contemporary": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
+        "Intermediate Contemporary": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
+        "Junior Jazz": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
+        "Advanced Jazz": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
+        "Junior House & Hip Hop": {"Junior (6-12)": 5.50, "Teen (13-16)": 6},
+        "Advanced House & Hip Hop": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
+        "Junior Waacking & Locking": {"Junior (6-12)": 5.50, "Teen (13-16)": 6},
+        "Advanced Waacking & Locking": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
+        "Tap Class": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
+        "Commercial": {"Junior (6-12)": 5.50,"Teen (13-16)": 6, "Adult": 6.50},
+        "Private": {"All": 30}
+    }
     
-# Price chart
-price_chart = {
-    "Junior Ballet": {"Mini (3-5)": 5, "Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
-    "Intermediate Ballet": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
-    "Junior Contemporary": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
-    "Intermediate Contemporary": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
-    "Junior Jazz": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
-    "Advanced Jazz": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
-    "Junior House & Hip Hop": {"Junior (6-12)": 5.50, "Teen (13-16)": 6},
-    "Advanced House & Hip Hop": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
-    "Junior Waacking & Locking": {"Junior (6-12)": 5.50, "Teen (13-16)": 6},
-    "Advanced Waacking & Locking": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
-    "Tap Class": {"Junior (6-12)": 5.50, "Teen (13-16)": 6, "Adult": 6.50},
-    "Commercial": {"Junior (6-12)": 5.50,"Teen (13-16)": 6, "Adult": 6.50},
-    "Private": {"All": 20}
-}
+    # Calculate class rates
+    rates = []
+    for cls in selected_classes:
+        if cls == "Private":
+            rate = price_chart["Private"]["All"]
+        else:
+            rate = price_chart.get(cls, {}).get(age_group, 0)
+        rates.append((cls, rate))
     
-# Calculate class rates
-rates = []
-for cls in selected_classes:
-    if cls == "Private":
-        rate = price_chart["Private"]["All"]
-    else:
-        rate = price_chart.get(cls, {}).get(age_group, 0)
-    rates.append((cls, rate))
+    st.subheader("Class Rates")
+    for cls, rate in rates:
+        st.write(f"{cls}: £{rate:.2f}")
     
-st.subheader("Class Rates")
-for cls, rate in rates:
-    st.write(f"{cls}: £{rate:.2f}")
+    # Optional override
+    manual_override = st.checkbox("Override all rates with a custom value?")
+    if manual_override:
+        custom_rate = st.number_input("Enter custom rate", min_value=0.0, step=0.5)
+        rates = [(cls, custom_rate) for cls, _ in rates]
     
-# Optional override
-manual_override = st.checkbox("Override all rates with a custom value?")
-if manual_override:
-    custom_rate = st.number_input("Enter custom rate", min_value=0.0, step=0.5)
-    rates = [(cls, custom_rate) for cls, _ in rates]
+    classes_attended = st.number_input("Total number of classes attended (combined)", min_value=0)
     
-classes_attended = st.number_input("Total number of classes attended (combined)", min_value=0)
-    
-# Predefined extras
-available_extras = {
-    "Subscription": [
-        "Team Training-GFoundation",
-        "Team Training-GSD Youth",
-        "Team Training-Jenga",
-        "Team Training-Youth Contemporary",
-        "Team Training-Youth Jazz",
-        "Team Training-Junior Contemporary",
-        "Team Training-Junior Jazz"
-    ],   
-    "Session-Based": [
-        "Extra Rehearsal - Competition",
-        "Extra Rehearsal - Show",
-        "Private Lesson",
-        "Open House Class"
-    ],    
-    "One-Off": [
-        "Costume Fee", 
-        "Uniform Fee", 
-        "Exam Entry", 
-        "Competition Fee"
-    ]
-}
+    # Predefined extras
+    available_extras = {
+        "Subscription": [
+            "Team Training-GFoundation",
+            "Team Training-GSD Youth",
+            "Team Training-Jenga",
+            "Team Training-Youth Contemporary",
+            "Team Training-Youth Jazz",
+            "Team Training-Junior Contemporary",
+            "Team Training-Junior Jazz"
+        ],   
+        "Session-Based": [
+            "Extra Rehearsal - Competition",
+            "Extra Rehearsal - Show",
+            "Private Lesson",
+            "Open House Class"
+        ],    
+        "One-Off": [
+            "Costume Fee", 
+            "Uniform Fee", 
+            "Exam Entry", 
+            "Competition Fee"
+        ]
+    }
     
     # Flatten all extras for selection
-all_extras = [item for sublist in available_extras.values() for item in sublist]
+    all_extras = [item for sublist in available_extras.values() for item in sublist]
     
     # Manage structured extras with session_state
-if "extras" not in st.session_state:
-    st.session_state.extras = []
+    if "extras" not in st.session_state:
+        st.session_state.extras = []
     
-st.subheader("Extras")
-with st.form("add_extra_form", clear_on_submit=True):
-    extra_name = st.selectbox("Choose Extra", all_extras)
-    extra_type = None
-    for typ, items in available_extras.items():
-        if extra_name in items:
-            extra_type = typ
-            break
+    st.subheader("Extras")
+    with st.form("add_extra_form", clear_on_submit=True):
+        extra_name = st.selectbox("Choose Extra", all_extras)
+        extra_type = None
+        for typ, items in available_extras.items():
+            if extra_name in items:
+                extra_type = typ
+                break
     
-    extra_amount = st.number_input("Amount", min_value=0.0, step=0.5)
-    extra_date = None
-    if extra_type == "Session-Based":
-        extra_date = st.date_input("Date of Session", value=date.today())
+        extra_amount = st.number_input("Amount", min_value=0.0, step=0.5)
+        extra_date = None
+        if extra_type == "Session-Based":
+            extra_date = st.date_input("Date of Session", value=date.today())
     
-    submit_extra = st.form_submit_button("Add Extra")
+        submit_extra = st.form_submit_button("Add Extra")
     
-    if submit_extra and extra_name and extra_amount > 0:
-        st.session_state.extras.append({
-            "name": extra_name,
-            "type": extra_type,
-            "amount": extra_amount,
-            "date": str(extra_date) if extra_date else ""
-        })
+        if submit_extra and extra_name and extra_amount > 0:
+            st.session_state.extras.append({
+                "name": extra_name,
+                "type": extra_type,
+                "amount": extra_amount,
+                "date": str(extra_date) if extra_date else ""
+            })
     
     # Display added extras
-if st.session_state.extras:
-    st.write("**Added Extras:**")
-    for i, ex in enumerate(st.session_state.extras):
-        desc = f"{ex['name']} ({ex['type']})"
-        if ex['type'] == "Session-Based" and ex['date']:
-            desc += f" on {ex['date']}"
-        st.write(f"{i+1}. {desc}: £{ex['amount']:.2f}")
+    if st.session_state.extras:
+        st.write("**Added Extras:**")
+        for i, ex in enumerate(st.session_state.extras):
+            desc = f"{ex['name']} ({ex['type']})"
+            if ex['type'] == "Session-Based" and ex['date']:
+                desc += f" on {ex['date']}"
+            st.write(f"{i+1}. {desc}: £{ex['amount']:.2f}")
     
     # Notes
-notes = st.text_area("Notes (optional)")
+    notes = st.text_area("Notes (optional)")
     
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds_dict = st.secrets["gcp_service_account"]
-creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-client = gspread.authorize(creds)
-sheet = client.open("Groundswell-Business").worksheet("invoices")
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds_dict = st.secrets["gcp_service_account"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    client = gspread.authorize(creds)
+    sheet = client.open("Groundswell-Business").worksheet("invoices")
 
-if st.button("Generate Invoice"):
-    total_class_rate = sum(rate for _, rate in rates)
-    class_total = classes_attended * total_class_rate
-    extras_total = sum(extra["amount"] for extra in st.session_state.extras)
-    grand_total = class_total + extras_total
+    if st.button("Generate Invoice"):
+        total_class_rate = sum(rate for _, rate in rates)
+        class_total = classes_attended * total_class_rate
+        extras_total = sum(extra["amount"] for extra in st.session_state.extras)
+        grand_total = class_total + extras_total
 
-    invoice_period = f"{invoice_start} to {invoice_end}"
-    date_created = datetime.now().strftime("%Y-%m-%d")
-    class_names = ", ".join(cls for cls, _ in rates)
-    extra_names = ", ".join(
-        f"{ex['name']} ({ex['type']}" +
-        (f" on {ex['date']}" if ex['type'] == "Session-Based" and ex['date'] else "") +
-        f"): £{ex['amount']:.2f}"
-        for ex in st.session_state.extras
-    )
-    invoice_label = f"{student} - {invoice_start.strftime('%b %Y')}"
+        invoice_period = f"{invoice_start} to {invoice_end}"
+        date_created = datetime.now().strftime("%Y-%m-%d")
+        class_names = ", ".join(cls for cls, _ in rates)
+        extra_names = ", ".join(
+            f"{ex['name']} ({ex['type']}" +
+            (f" on {ex['date']}" if ex['type'] == "Session-Based" and ex['date'] else "") +
+            f"): £{ex['amount']:.2f}"
+            for ex in st.session_state.extras
+        )
+        invoice_label = f"{student} - {invoice_start.strftime('%b %Y')}"
 
-    row = [
-        date_created, invoice_period, student, class_names, classes_attended,
-        total_class_rate, extra_names, extras_total, grand_total,
-        "Unpaid", notes, invoice_label
-    ]
-    sheet.append_row(row)
+        row = [
+            date_created, invoice_period, student, class_names, classes_attended,
+            total_class_rate, extra_names, extras_total, grand_total,
+            "Unpaid", notes, invoice_label
+        ]
+        sheet.append_row(row)
 
-    # Word doc generation
-    invoice_path = generate_invoice_doc(
-        student_name=student,
-        date_from=invoice_start.strftime("%Y-%m-%d"),
-        date_to=invoice_end.strftime("%Y-%m-%d"),
-        class_list=[f"{cls}: £{rate:.2f}" for cls, rate in rates],
-        extras=[f"{ex['name']} – £{ex['amount']:.2f}" for ex in st.session_state.extras],
-        total=grand_total
-    )
-
-    with open(invoice_path, "rb") as file:
-        st.download_button(
-            label="Download Invoice (Word)",
-            data=file,
-            file_name=f"{student}_invoice.docx",
-            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        # Word doc generation
+        invoice_path = generate_invoice_doc(
+            student_name=student,
+            date_from=invoice_start.strftime("%Y-%m-%d"),
+            date_to=invoice_end.strftime("%Y-%m-%d"),
+            class_list=[f"{cls}: £{rate:.2f}" for cls, rate in rates],
+            extras=[f"{ex['name']} – £{ex['amount']:.2f}" for ex in st.session_state.extras],
+            total=grand_total
         )
 
-    st.success(f"Invoice created for {student} (£{grand_total:.2f})")
-    st.session_state.extras = []
-        
+        with open(invoice_path, "rb") as file:
+            st.download_button(
+                label="Download Invoice (Word)",
+                data=file,
+                file_name=f"{student}_invoice.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
 
+        st.success(f"Invoice created for {student} (£{grand_total:.2f})")
+        st.session_state.extras = []
+        
 elif selection == "Student Manager":
     import streamlit as st
     import gspread
