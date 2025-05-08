@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Dance School OS", layout="wide")
 
-tabs = ["Invoice Generator", "Student Manager", "Registers", "Accounts Package", "Invoices Dashboard"]
+tabs = ["Invoice Generator", "Student Manager", "Registers", "Accounts Package", "Invoices Dashboard", "Revenue Forecast"]
 selection = st.sidebar.radio("Choose View", tabs)
 
 if selection == "Invoice Generator":
@@ -643,6 +643,39 @@ elif selection == "Invoices Dashboard":
     st.download_button("Download Filtered Data as CSV", data=filtered_df.to_csv(index=False), file_name="invoices_filtered.csv", mime="text/csv")
 
 
+elif selection == "Revenue Forecast":
+    import pandas as pd
+    import numpy as np
+    from sklearn.linear_model import LinearRegression
+    import matplotlib.pyplot as plt
+
+    st.header("30-Day Revenue Forecast")
+
+    # Load your invoice data from Google Sheets or CSV
+    # For now, we'll simulate with a local file
+    df = pd.read_csv("invoices_filtered.csv")
+    df['Date created'] = pd.to_datetime(df['Date created'])
+    forecast_df = df.groupby('Date created')['Grand total'].sum().reset_index()
+    forecast_df.columns = ['ds', 'y']
+    forecast_df['ds_ordinal'] = forecast_df['ds'].map(pd.Timestamp.toordinal)
+
+    # Train linear regression model
+    X = forecast_df[['ds_ordinal']]
+    y = forecast_df['y']
+    model = LinearRegression()
+    model.fit(X, y)
+
+    # Forecast next 30 days
+    last_date = forecast_df['ds'].max()
+    future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=30)
+    future_ordinals = np.array([d.toordinal() for d in future_dates]).reshape(-1, 1)
+    predicted = model.predict(future_ordinals)
+
+    # Combine actual and forecast
+    forecast = pd.DataFrame({'ds': future_dates, 'y': predicted})
+    full_data = pd.concat([forecast_df[['ds', 'y']], forecast])
+
+    st.line_chart(full_data.set_index('ds')['y'])
 
 
             
