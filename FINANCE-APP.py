@@ -102,6 +102,14 @@ def show_high_value_invoices(threshold=100):
     client = gspread.authorize(creds)
     sheet = client.open("Groundswell-Business").worksheet("invoices")
 
+def load_data():
+    data = sheet.get_all_records()
+    df = pd.DataFrame(data)
+    df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
+    df = df[df["Date created"].notna()]
+    df["Month"] = df["Date created"].dt.to_period("M")
+    return df
+
     data = sheet.get_all_records()
     df = pd.DataFrame(data)
     df = load_data()
