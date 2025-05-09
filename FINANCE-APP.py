@@ -906,11 +906,11 @@ elif selection == "Manager Dashboard":
     st.header("Manager Dashboard")
 
     # --- Safe date parsing ---
-    if df["Date created"].dtype != "datetime64[ns]":
-        df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
+    #if df["Date created"].dtype != "datetime64[ns]":
+        #df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
 
-    df = df[df["Date created"].notna()]  # Remove rows with bad/missing dates
-    df["Month"] = df["Date created"].dt.to_period("M")
+    #df = df[df["Date created"].notna()]  # Remove rows with bad/missing dates
+    #df["Month"] = df["Date created"].dt.to_period("M")
 
     # --- Monthly Revenue Summary ---
     st.subheader("Monthly Revenue")
