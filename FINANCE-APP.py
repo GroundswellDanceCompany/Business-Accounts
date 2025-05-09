@@ -696,39 +696,40 @@ elif selection == "Ask AI":
     # Load OpenAI client using Streamlit secrets
     client = OpenAI(api_key=st.secrets["openai"]["api_key"])
 
-    # Load your invoice DataFrame (assumes 'df' is already defined elsewhere from your Google Sheet)
-
     # Input box for user query
-    query = st.text_input("Ask something like: 'How much did Lily pay?' or 'Show unpaid invoices'")
+    query = st.text_input("Ask something like: 'How much has Millie paid?' or 'Show unpaid invoices for Louisa'")
 
-    # Define the intent parser using OpenAI
     def get_intent_from_gpt(question):
         prompt = f"""
-You are a helpful assistant for a finance app that tracks invoices.
-Given the user question, return a JSON object describing the intent.
-Use one of these intents:
-- 'total_paid'
-- 'unpaid_invoices'
-- 'list_by_student'
-- 'summary_by_month'
+You are a helpful assistant for a dance school finance app.
+Given a user question, respond ONLY with valid JSON containing:
+- an "intent"
+- any relevant fields like "student" or "month"
 
-Return relevant fields like 'student', 'month', or 'status'.
+Supported intents:
+- 'total_paid': total amount paid by a student
+- 'unpaid_invoices': list all unpaid invoices
+- 'unpaid_by_student': list unpaid invoices for a specific student
+- 'summary_by_month': show monthly revenue totals
+- 'top_payers': show top 5 paying students
+- 'revenue_by_student': total revenue grouped by student
+- 'list_by_student': list all invoices for a specific student
 
 User question: '{question}'
-Respond ONLY with valid JSON.
+Respond ONLY with valid JSON. Do NOT explain.
 """
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=250,
+            max_tokens=300,
             temperature=0.5
         )
         return response.choices[0].message.content
 
-    # Process query
     if query:
         try:
             parsed = json.loads(get_intent_from_gpt(query))
+            st.subheader("Intent Detected")
             st.json(parsed)
 
             intent = parsed.get("intent")
@@ -743,15 +744,32 @@ Respond ONLY with valid JSON.
                 result = df[df["Status"] == "Unpaid"]
                 st.dataframe(result)
 
-            elif intent == "list_by_student":
+            elif intent == "unpaid_by_student":
                 name = parsed.get("student")
-                result = df[df["Student"].str.contains(name, case=False)]
+                result = df[(df["Student"].str.contains(name, case=False)) & (df["Status"] == "Unpaid")]
                 st.dataframe(result)
 
             elif intent == "summary_by_month":
                 df["Month"] = pd.to_datetime(df["Date created"]).dt.to_period("M")
-                summary = df.groupby("Month")["Grand total"].sum()
+                summary = df.groupby("Month")["Grand total"].sum().sort_index()
                 st.bar_chart(summary)
+
+            elif intent == "top_payers":
+                result = df[df["Status"] == "Paid"]
+                summary = result.groupby("Student")["Grand total"].sum().sort_values(ascending=False).head(5)
+                st.write("Top 5 paying students:")
+                st.dataframe(summary)
+
+            elif intent == "revenue_by_student":
+                result = df[df["Status"] == "Paid"]
+                summary = result.groupby("Student")["Grand total"].sum().sort_values(ascending=False)
+                st.write("Revenue per student:")
+                st.dataframe(summary)
+
+            elif intent == "list_by_student":
+                name = parsed.get("student")
+                result = df[df["Student"].str.contains(name, case=False)]
+                st.dataframe(result)
 
             else:
                 st.warning("Sorry, I didn’t understand that question.")
