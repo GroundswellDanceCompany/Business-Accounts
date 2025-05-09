@@ -60,6 +60,8 @@ def show_student_invoices(student_name):
     result = df[df["Student"].str.contains(student_name, case=False)]
     st.dataframe(result)
 
+import pandas as pd
+
 def show_invoices_by_month(month_period):
     filtered = df[df["Date created"].dt.to_period("M") == month_period]
     st.markdown(f"### Invoices for {month_period}")
@@ -84,6 +86,9 @@ def show_high_value_invoices(threshold=100):
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
     sheet = client.open("Groundswell-Business").worksheet("invoices")
+
+    data = sheet.get_all_records()
+    df = pd.DataFrame(data)
 
 if selection == "Invoice Generator":
 
