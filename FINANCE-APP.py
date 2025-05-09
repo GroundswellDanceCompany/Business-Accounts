@@ -693,30 +693,43 @@ elif selection == "Ask AI":
     import json
     from openai import OpenAI
 
-    # Load OpenAI client using Streamlit secrets
+    # Load OpenAI client
     client = OpenAI(api_key=st.secrets["openai"]["api_key"])
 
-    # Input box for user query
-    query = st.text_input("Ask something like: 'How much has Millie paid?' or 'Show unpaid invoices for Louisa'")
+    # Example prompts for the user
+    st.markdown("#### Try asking things like:")
+    st.markdown("""
+    - **How much has Millie paid?**  
+    - **Show unpaid invoices**  
+    - **Who are the top 5 paying students?**  
+    - **How much does Lily owe?**  
+    - **Show all invoices for Layla**  
+    - **What’s the revenue by student?**  
+    - **What was income last month?**
+    """)
 
+    # Query input
+    query = st.text_input("Ask your question:")
+
+    # Function to get intent and entities
     def get_intent_from_gpt(question):
         prompt = f"""
 You are a helpful assistant for a dance school finance app.
-Given a user question, respond ONLY with valid JSON containing:
+Given a user question, return a JSON object with:
 - an "intent"
 - any relevant fields like "student" or "month"
 
 Supported intents:
 - 'total_paid': total amount paid by a student
 - 'unpaid_invoices': list all unpaid invoices
-- 'unpaid_by_student': list unpaid invoices for a specific student
-- 'summary_by_month': show monthly revenue totals
-- 'top_payers': show top 5 paying students
-- 'revenue_by_student': total revenue grouped by student
-- 'list_by_student': list all invoices for a specific student
+- 'unpaid_by_student': unpaid invoices for a specific student
+- 'summary_by_month': revenue grouped by month
+- 'top_payers': top 5 paying students
+- 'revenue_by_student': total revenue per student
+- 'list_by_student': all invoices for a student
 
+Respond ONLY with valid JSON.
 User question: '{question}'
-Respond ONLY with valid JSON. Do NOT explain.
 """
         response = client.chat.completions.create(
             model="gpt-4",
@@ -726,6 +739,21 @@ Respond ONLY with valid JSON. Do NOT explain.
         )
         return response.choices[0].message.content
 
+    # Email generation helper
+    def send_reminder_email(name, amount):
+        prompt = f"""
+Write a short, polite payment reminder email to {name}, who owes £{amount:.2f} for dance classes. 
+Keep it friendly and professional. Mention that payment can be made online.
+"""
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=150,
+            temperature=0.7
+        )
+        return response.choices[0].message.content
+
+    # Main logic
     if query:
         try:
             parsed = json.loads(get_intent_from_gpt(query))
@@ -744,10 +772,24 @@ Respond ONLY with valid JSON. Do NOT explain.
                 result = df[df["Status"] == "Unpaid"]
                 st.dataframe(result)
 
+                if not result.empty:
+                    if st.button("Generate reminder emails for all students"):
+                        names = result["Student"].unique()
+                        for name in names:
+                            amount = result[result["Student"] == name]["Grand total"].sum()
+                            email = send_reminder_email(name, amount)
+                            st.text_area(f"Email for {name}", email, height=150)
+
             elif intent == "unpaid_by_student":
                 name = parsed.get("student")
                 result = df[(df["Student"].str.contains(name, case=False)) & (df["Status"] == "Unpaid")]
                 st.dataframe(result)
+
+                if not result.empty:
+                    if st.button(f"Generate reminder email for {name}"):
+                        amount = result["Grand total"].sum()
+                        email = send_reminder_email(name, amount)
+                        st.text_area(f"Reminder email for {name}", email, height=150)
 
             elif intent == "summary_by_month":
                 df["Month"] = pd.to_datetime(df["Date created"]).dt.to_period("M")
