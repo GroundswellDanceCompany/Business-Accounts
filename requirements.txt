@@ -6,3 +6,10 @@ python-docx
 scikit-learn
 matplotlib
 openai
+python-docx
+docx2pdf
+pdf2image
+pillow
+google-api-python-client
+google-auth
+google-auth-oauthlib
