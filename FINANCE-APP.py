@@ -110,8 +110,6 @@ def load_data():
     df["Month"] = df["Date created"].dt.to_period("M")
     return df
 
-    data = sheet.get_all_records()
-    df = pd.DataFrame(data)
     df = load_data()
 
 if selection == "Invoice Generator":
