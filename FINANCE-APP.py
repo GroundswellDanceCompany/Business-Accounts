@@ -911,9 +911,18 @@ Keep it friendly and professional. Mention that payment can be made online.
 elif selection == "Manager Dashboard":
     st.header("Manager Dashboard")
 
+    # --- Set up Google Sheets access ---
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds_dict = st.secrets["gcp_service_account"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    client = gspread.authorize(creds)
+    sheet = client.open("Groundswell-Business").worksheet("invoices")
+
     # --- Local data loader ---
     def load_data():
-        global sheet
         data = sheet.get_all_records()
         df = pd.DataFrame(data)
 
@@ -926,6 +935,8 @@ elif selection == "Manager Dashboard":
         return df
 
     df = load_data()
+
+    # ... rest of your Manager Dashboard logic ...
 
     # --- Helper functions (local only) ---
     def show_followup(label, callback, *args):
