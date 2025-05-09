@@ -51,29 +51,44 @@ def generate_invoice_doc(student_name, date_from, date_to, class_list, extras, t
     doc.save(save_path)
     return save_path
 
-def show_followup(label, callback, *args, **kwargs):
-    st.markdown(f"**Next step:**")
+def show_invoices_by_month(df, month_period):
+    df["Date created"] = pd.to_datetime(df["Date created"])
+    filtered = df[df["Date created"].dt.to_period("M") == month_period]
+    st.dataframe(filtered)
+
+def show_student_invoices(df, student_name):
+    filtered = df[df["Student"].str.contains(student_name, case=False)]
+    st.dataframe(filtered)
+
+def show_reminder_email(df, student_name):
+    filtered = df[(df["Student"].str.contains(student_name, case=False)) & (df["Status"] == "Unpaid")]
+    amount = filtered["Grand total"].sum()
+    if amount > 0:
+        email_text = send_reminder_email(student_name, amount)
+        st.text_area(f"Reminder email for {student_name}", email_text, height=150)
+
+def show_all_reminders(df):
+    unpaid_df = df[df["Status"] == "Unpaid"]
+    for name in unpaid_df["Student"].unique():
+        amount = unpaid_df[unpaid_df["Student"] == name]["Grand total"].sum()
+        email = send_reminder_email(name, amount)
+        st.text_area(f"Email for {name}", email, height=150)
+        
+import pandas as pd
+
+def show_followup(label, callback, *args):
+    st.markdown("**Next step:**")
     if st.button(label):
-        callback(*args, **kwargs)
+        callback(*args)
 
 def show_student_invoices(student_name):
     result = df[df["Student"].str.contains(student_name, case=False)]
     st.dataframe(result)
 
-import pandas as pd
-
 def show_invoices_by_month(month_period):
     filtered = df[df["Date created"].dt.to_period("M") == month_period]
     st.markdown(f"### Invoices for {month_period}")
     st.dataframe(filtered)
-
-def show_reminder_email(student_name):
-    result = df[(df["Student"].str.contains(student_name, case=False)) & (df["Status"] == "Unpaid")]
-    amount = result["Grand total"].sum()
-
-    if amount > 0:
-        email_text = send_reminder_email(student_name, amount)
-        st.text_area(f"Reminder email for {student_name}", email_text, height=150)
 
 def show_high_value_invoices(threshold=100):
     filtered = df[df["Grand total"] >= threshold]
@@ -837,6 +852,7 @@ Keep it friendly and professional. Mention that payment can be made online.
                 st.dataframe(result)
 
                 if not result.empty:
+                    show_followup("Generate reminder email", show_reminder_email, df, name)
                     if st.button(f"Generate reminder email for {name}"):
                         amount = result["Grand total"].sum()
                         email = send_reminder_email(name, amount)
@@ -850,6 +866,7 @@ Keep it friendly and professional. Mention that payment can be made online.
                 st.markdown("**Want to see all invoices from the latest month?**")
                 if st.button("Show invoices for latest month"):
                     latest_month = summary.index[-1]
+                    show_followup("Show invoices for latest month", show_invoices_by_month, df, latest_month)
                     invoices = df[df["Date created"].dt.to_period("M") == latest_month]
                     st.dataframe(invoices)
 
