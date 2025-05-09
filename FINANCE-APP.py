@@ -896,28 +896,35 @@ Keep it friendly and professional. Mention that payment can be made online.
 elif selection == "Manager Dashboard":
     st.header("Manager Dashboard")
 
-    # Revenue Summary
-    df["Month"] = pd.to_datetime(df["Date created"]).dt.to_period("M")
-    monthly_summary = df.groupby("Month")["Grand total"].sum().sort_index()
+    # --- Safe date parsing ---
+    if df["Date created"].dtype != "datetime64[ns]":
+        df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
+
+    df = df[df["Date created"].notna()]  # Remove rows with bad/missing dates
+    df["Month"] = df["Date created"].dt.to_period("M")
+
+    # --- Monthly Revenue Summary ---
     st.subheader("Monthly Revenue")
+    monthly_summary = df.groupby("Month")["Grand total"].sum().sort_index()
     st.bar_chart(monthly_summary)
 
     latest_month = monthly_summary.index[-1]
-    show_followup("Show invoices for latest month", show_invoices_by_month, latest_month)
+    show_followup("Show invoices for latest month", show_invoices_by_month, df, latest_month)
 
-    # Unpaid Overview
+    # --- Unpaid Overview ---
     st.subheader("Unpaid Invoices")
     unpaid_df = df[df["Status"] == "Unpaid"]
     st.dataframe(unpaid_df)
 
-    top_unpaid = unpaid_df["Student"].value_counts().head(1).index[0]
-    show_followup(f"Draft reminder email to {top_unpaid}", show_reminder_email, top_unpaid)
+    if not unpaid_df.empty:
+        top_unpaid = unpaid_df["Student"].value_counts().idxmax()
+        show_followup(f"Draft reminder email to {top_unpaid}", show_reminder_email, df, top_unpaid)
 
-    # High-Value Invoices
+    # --- High-Value Invoices ---
     st.subheader("Invoices Over £100")
-    show_followup("Show high-value invoices", show_high_value_invoices, 100)
+    show_followup("Show high-value invoices", show_high_value_invoices, df, 100)
 
-    # Top Payers
+    # --- Top Paying Students ---
     st.subheader("Top-Paying Students")
     paid_df = df[df["Status"] == "Paid"]
     top_students = paid_df.groupby("Student")["Grand total"].sum().sort_values(ascending=False).head(5)
