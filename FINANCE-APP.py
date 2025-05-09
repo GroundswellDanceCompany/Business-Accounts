@@ -314,7 +314,7 @@ if selection == "Invoice Generator":
         st.success(f"Invoice created for {student} (£{grand_total:.2f})")
         st.session_state.extras = []
 
-        if st.button("Generate Invoice"):
+        if st.button("Create and Send Invoice"):
             generate_invoice_doc(...)
             handle_invoice_delivery(student_name)
         
