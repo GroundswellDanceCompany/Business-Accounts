@@ -689,13 +689,19 @@ elif selection == "Revenue Forecast":
 elif selection == "Ask AI":
     st.header("Ask AI About Your Invoices")
 
-    import openai
+    import pandas as pd
     import json
+    from openai import OpenAI
 
-    openai.api_key = st.secrets["openai"]["api_key"]
+    # Load OpenAI client using Streamlit secrets
+    client = OpenAI(api_key=st.secrets["openai"]["api_key"])
 
-    query = st.text_input("Ask something about your invoices (e.g. 'How much did Lily pay in April?')")
+    # Load your invoice DataFrame (assumes 'df' is already defined elsewhere from your Google Sheet)
 
+    # Input box for user query
+    query = st.text_input("Ask something like: 'How much did Lily pay?' or 'Show unpaid invoices'")
+
+    # Define the intent parser using OpenAI
     def get_intent_from_gpt(question):
         prompt = f"""
 You are a helpful assistant for a finance app that tracks invoices.
@@ -711,12 +717,15 @@ Return relevant fields like 'student', 'month', or 'status'.
 User question: '{question}'
 Respond ONLY with valid JSON.
 """
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
-            messages=[{"role": "user", "content": prompt}]
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=250,
+            temperature=0.5
         )
-        return response.choices[0].message["content"]
+        return response.choices[0].message.content
 
+    # Process query
     if query:
         try:
             parsed = json.loads(get_intent_from_gpt(query))
@@ -746,6 +755,7 @@ Respond ONLY with valid JSON.
 
             else:
                 st.warning("Sorry, I didn’t understand that question.")
+
         except Exception as e:
             st.error(f"Something went wrong: {e}")
 
