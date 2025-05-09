@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Dance School OS", layout="wide")
 
-tabs = ["Invoice Generator", "Student Manager", "Registers", "Accounts Package", "Invoices Dashboard", "Revenue Forecast", "Ask AI"]
+tabs = ["Invoice Generator", "Student Manager", "Registers", "Accounts Package", "Invoices Dashboard", "Revenue Forecast", "Ask AI", "Manager Dashboard"]
 selection = st.sidebar.radio("Choose View", tabs)
 
 if selection == "Invoice Generator":
@@ -51,32 +51,32 @@ def generate_invoice_doc(student_name, date_from, date_to, class_list, extras, t
     doc.save(save_path)
     return save_path
 
-def handle_invoice_delivery_docx(student_name="Student", file_path="generated_invoice.docx"):
-    import os
+def show_followup(label, callback, *args, **kwargs):
+    st.markdown(f"**Next step:**")
+    if st.button(label):
+        callback(*args, **kwargs)
 
-    st.markdown("### Preview and Send Invoice")
+def show_student_invoices(student_name):
+    result = df[df["Student"].str.contains(student_name, case=False)]
+    st.dataframe(result)
 
-    with open(file_path, "rb") as file:
-        st.download_button(
-            label="Download Invoice for Preview",
-            data=file,
-            file_name=file_path,
-            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        )
+def show_invoices_by_month(month_period):
+    filtered = df[df["Date created"].dt.to_period("M") == month_period]
+    st.markdown(f"### Invoices for {month_period}")
+    st.dataframe(filtered)
 
-    phone = st.text_input("Student WhatsApp number (with country code, no spaces)")
-    if phone:
-        whatsapp_url = f"https://wa.me/{phone}"
-        st.markdown(f"[**Open WhatsApp Web**]({whatsapp_url})")
-        st.info("Once WhatsApp opens, manually upload the Word invoice file you previewed.")
+def show_reminder_email(student_name):
+    result = df[(df["Student"].str.contains(student_name, case=False)) & (df["Status"] == "Unpaid")]
+    amount = result["Grand total"].sum()
 
-    email = st.text_input("Student email (optional)")
-    if email:
-        if st.button("Send Invoice via Email"):
-            subject = f"Invoice from Groundswell Dance – {student_name}"
-            body = f"Hi {student_name},\n\nPlease find attached your invoice for this month's classes.\n\nThanks!"
-            send_email_with_attachment(email, subject, body, file_path)
-            st.success(f"Email sent to {email}")
+    if amount > 0:
+        email_text = send_reminder_email(student_name, amount)
+        st.text_area(f"Reminder email for {student_name}", email_text, height=150)
+
+def show_high_value_invoices(threshold=100):
+    filtered = df[df["Grand total"] >= threshold]
+    st.markdown(f"### Invoices Over £{threshold}")
+    st.dataframe(filtered)
     
     # Google Sheets setup using Streamlit secrets
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -808,6 +808,12 @@ Keep it friendly and professional. Mention that payment can be made online.
                 total = result["Grand total"].sum()
                 st.success(f"{name} has paid £{total:.2f}")
 
+                show_followup(
+                    label=f"Show all invoices for {name}",
+                    callback=show_student_invoices,
+                    student_name=name
+                )
+
             elif intent == "unpaid_invoices":
                 result = df[df["Status"] == "Unpaid"]
                 st.dataframe(result)
@@ -836,6 +842,12 @@ Keep it friendly and professional. Mention that payment can be made online.
                 summary = df.groupby("Month")["Grand total"].sum().sort_index()
                 st.bar_chart(summary)
 
+                st.markdown("**Want to see all invoices from the latest month?**")
+                if st.button("Show invoices for latest month"):
+                    latest_month = summary.index[-1]
+                    invoices = df[df["Date created"].dt.to_period("M") == latest_month]
+                    st.dataframe(invoices)
+
             elif intent == "top_payers":
                 result = df[df["Status"] == "Paid"]
                 summary = result.groupby("Student")["Grand total"].sum().sort_values(ascending=False).head(5)
@@ -858,6 +870,36 @@ Keep it friendly and professional. Mention that payment can be made online.
 
         except Exception as e:
             st.error(f"Something went wrong: {e}")
+
+elif selection == "Manager Dashboard":
+    st.header("Manager Dashboard")
+
+    # Revenue Summary
+    df["Month"] = pd.to_datetime(df["Date created"]).dt.to_period("M")
+    monthly_summary = df.groupby("Month")["Grand total"].sum().sort_index()
+    st.subheader("Monthly Revenue")
+    st.bar_chart(monthly_summary)
+
+    latest_month = monthly_summary.index[-1]
+    show_followup("Show invoices for latest month", show_invoices_by_month, latest_month)
+
+    # Unpaid Overview
+    st.subheader("Unpaid Invoices")
+    unpaid_df = df[df["Status"] == "Unpaid"]
+    st.dataframe(unpaid_df)
+
+    top_unpaid = unpaid_df["Student"].value_counts().head(1).index[0]
+    show_followup(f"Draft reminder email to {top_unpaid}", show_reminder_email, top_unpaid)
+
+    # High-Value Invoices
+    st.subheader("Invoices Over £100")
+    show_followup("Show high-value invoices", show_high_value_invoices, 100)
+
+    # Top Payers
+    st.subheader("Top-Paying Students")
+    paid_df = df[df["Status"] == "Paid"]
+    top_students = paid_df.groupby("Student")["Grand total"].sum().sort_values(ascending=False).head(5)
+    st.dataframe(top_students)
 
 
             
