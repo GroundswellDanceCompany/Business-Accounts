@@ -593,12 +593,12 @@ elif selection == "Invoices Dashboard":
     from datetime import datetime
 
     def load_data():
-    data = sheet.get_all_records()
-    df = pd.DataFrame(data)
-    df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
-    df = df[df["Date created"].notna()]
-    df["Month"] = df["Date created"].dt.to_period("M")
-    return df
+        data = sheet.get_all_records()
+        df = pd.DataFrame(data)
+        df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
+        df = df[df["Date created"].notna()]
+        df["Month"] = df["Date created"].dt.to_period("M")
+        return df
     
     # Google Sheets setup
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
