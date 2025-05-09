@@ -692,7 +692,7 @@ elif selection == "Ask AI":
     import openai
     import json
 
-    openai.api_key = st.secrets["api_key"]
+    openai.api_key = st.secrets["openai"]["api_key"]
 
     query = st.text_input("Ask something about your invoices (e.g. 'How much did Lily pay in April?')")
 
