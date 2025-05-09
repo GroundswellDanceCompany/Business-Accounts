@@ -911,14 +911,58 @@ Keep it friendly and professional. Mention that payment can be made online.
 elif selection == "Manager Dashboard":
     st.header("Manager Dashboard")
 
-    # --- Safe date parsing ---
-    #if df["Date created"].dtype != "datetime64[ns]":
-        #df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
+    # --- Local data loader ---
+    def load_data():
+        data = sheet.get_all_records()
+        df = pd.DataFrame(data)
 
-    #df = df[df["Date created"].notna()]  # Remove rows with bad/missing dates
-    #df["Month"] = df["Date created"].dt.to_period("M")
+        df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
+        df["Grand total"] = pd.to_numeric(df["Grand total"], errors="coerce")
+        df["Status"] = df["Status"].fillna("Unpaid")
+        df = df[df["Date created"].notna()]
+        df["Month"] = df["Date created"].dt.to_period("M")
 
-    # --- Monthly Revenue Summary ---
+        return df
+
+    df = load_data()
+
+    # --- Helper functions (local only) ---
+    def show_followup(label, callback, *args):
+        st.markdown("**Next step:**")
+        if st.button(label):
+            callback(*args)
+
+    def show_invoices_by_month(df, month):
+        filtered = df[df["Month"] == month]
+        st.dataframe(filtered)
+
+    def show_reminder_email(df, student_name):
+        result = df[(df["Student"].str.contains(student_name, case=False)) & (df["Status"] == "Unpaid")]
+        amount = result["Grand total"].sum()
+        if amount > 0:
+            email_text = send_reminder_email(student_name, amount)
+            st.text_area(f"Reminder email for {student_name}", email_text, height=150)
+
+    def show_high_value_invoices(df, threshold):
+        filtered = df[df["Grand total"] >= threshold]
+        st.dataframe(filtered)
+
+    def send_reminder_email(name, amount):
+        prompt = f"""
+        Write a short, polite payment reminder email to {name}, who owes £{amount:.2f} for dance classes.
+        Keep it friendly and professional. Mention that payment can be made online.
+        """
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=150,
+            temperature=0.7
+        )
+        return response.choices[0].message.content
+
+    # --- Dashboard sections ---
+
+    # Revenue summary
     st.subheader("Monthly Revenue")
     monthly_summary = df.groupby("Month")["Grand total"].sum().sort_index()
     st.bar_chart(monthly_summary)
@@ -926,7 +970,7 @@ elif selection == "Manager Dashboard":
     latest_month = monthly_summary.index[-1]
     show_followup("Show invoices for latest month", show_invoices_by_month, df, latest_month)
 
-    # --- Unpaid Overview ---
+    # Unpaid invoices
     st.subheader("Unpaid Invoices")
     unpaid_df = df[df["Status"] == "Unpaid"]
     st.dataframe(unpaid_df)
@@ -935,11 +979,11 @@ elif selection == "Manager Dashboard":
         top_unpaid = unpaid_df["Student"].value_counts().idxmax()
         show_followup(f"Draft reminder email to {top_unpaid}", show_reminder_email, df, top_unpaid)
 
-    # --- High-Value Invoices ---
+    # High-value invoices
     st.subheader("Invoices Over £100")
-    show_followup("Show high-value invoices", show_high_value_invoices, df, 100)
+    show_followup("Show invoices over £100", show_high_value_invoices, df, 100)
 
-    # --- Top Paying Students ---
+    # Top-paying students
     st.subheader("Top-Paying Students")
     paid_df = df[df["Status"] == "Paid"]
     top_students = paid_df.groupby("Student")["Grand total"].sum().sort_values(ascending=False).head(5)
