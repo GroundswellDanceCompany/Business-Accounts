@@ -20,6 +20,9 @@ def generate_invoice_doc(student_name, date_from, date_to, class_list, extras, t
     template_path = "invoice_template.docx"  # adjust path if needed
     doc = Document(template_path)
 
+    folder = "Groundswell Dance Company"
+    os.makedirs(folder, exist_ok=True)
+
     # Replace placeholders
     for paragraph in doc.paragraphs:
         if "{{student_name}}" in paragraph.text:
