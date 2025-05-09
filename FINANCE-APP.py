@@ -245,20 +245,18 @@ if selection == "Invoice Generator":
             total=grand_total
         )
 
+        invoice_path = generate_invoice_doc(...)
+
         with open(invoice_path, "rb") as file:
             st.download_button(
                 label="Download Invoice (Word)",
                 data=file,
-                file_name=f"{student}_invoice.docx",
+                file_name=os.path.basename(invoice_path),
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
 
         st.success(f"Invoice created for {student} (£{grand_total:.2f})")
         st.session_state.extras = []
-
-        if st.button("Create and Send Invoice"):
-            generate_invoice_doc(student_name, class_list, extras, total)
-            handle_invoice_delivery_docx(student_name)
         
 elif selection == "Student Manager":
     import streamlit as st
