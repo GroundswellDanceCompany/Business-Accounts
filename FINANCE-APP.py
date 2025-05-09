@@ -245,8 +245,6 @@ if selection == "Invoice Generator":
             total=grand_total
         )
 
-        invoice_path = generate_invoice_doc(...)
-
         with open(invoice_path, "rb") as file:
             st.download_button(
                 label="Download Invoice (Word)",
