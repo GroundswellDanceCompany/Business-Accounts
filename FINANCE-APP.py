@@ -645,45 +645,45 @@ elif selection == "Invoices Dashboard":
 
 elif selection == "Revenue Forecast":
     import streamlit as st
-import pandas as pd
-import numpy as np
-from sklearn.linear_model import LinearRegression
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+    import pandas as pd
+    import numpy as np
+    from sklearn.linear_model import LinearRegression
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
 
-# Use secrets to authorize with Google Sheets
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
-client = gspread.authorize(creds)
+    # Use secrets to authorize with Google Sheets
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
+    client = gspread.authorize(creds)
 
-# Load data from Google Sheet
-sheet = client.open("Groundswell-Business").worksheet("Invoices")  # Adjust sheet name if needed
-data = sheet.get_all_records()
-df = pd.DataFrame(data)
+    # Load data from Google Sheet
+    sheet = client.open("Groundswell-Business").worksheet("invoices")  # Adjust sheet name if needed
+    data = sheet.get_all_records()
+    df = pd.DataFrame(data)
 
-# Convert and prepare data
-df['Date created'] = pd.to_datetime(df['Date created'])
-forecast_df = df.groupby('Date created')['Grand total'].sum().reset_index()
-forecast_df.columns = ['ds', 'y']
-forecast_df['ds_ordinal'] = forecast_df['ds'].map(pd.Timestamp.toordinal)
+    # Convert and prepare data
+    df['Date created'] = pd.to_datetime(df['Date created'])
+    forecast_df = df.groupby('Date created')['Grand total'].sum().reset_index()
+    forecast_df.columns = ['ds', 'y']
+    forecast_df['ds_ordinal'] = forecast_df['ds'].map(pd.Timestamp.toordinal)
 
-# Forecast using Linear Regression
-X = forecast_df[['ds_ordinal']]
-y = forecast_df['y']
-model = LinearRegression()
-model.fit(X, y)
+    # Forecast using Linear Regression
+    X = forecast_df[['ds_ordinal']]
+    y = forecast_df['y']
+    model = LinearRegression()
+    model.fit(X, y)
 
-future_dates = pd.date_range(start=forecast_df['ds'].max() + pd.Timedelta(days=1), periods=30)
-future_ordinals = np.array([d.toordinal() for d in future_dates]).reshape(-1, 1)
-predicted = model.predict(future_ordinals)
+    future_dates = pd.date_range(start=forecast_df['ds'].max() + pd.Timedelta(days=1), periods=30)
+    future_ordinals = np.array([d.toordinal() for d in future_dates]).reshape(-1, 1)
+    predicted = model.predict(future_ordinals)
 
-# Combine historical + forecasted
-forecast = pd.DataFrame({'ds': future_dates, 'y': predicted})
-full_data = pd.concat([forecast_df[['ds', 'y']], forecast])
+    # Combine historical + forecasted
+    forecast = pd.DataFrame({'ds': future_dates, 'y': predicted})
+    full_data = pd.concat([forecast_df[['ds', 'y']], forecast])
 
-# Display chart
-st.header("30-Day Revenue Forecast")
-st.line_chart(full_data.set_index('ds')['y'])
+    # Display chart
+    st.header("30-Day Revenue Forecast")
+    st.line_chart(full_data.set_index('ds')['y'])
 
 
             
