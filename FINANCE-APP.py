@@ -653,7 +653,9 @@ elif selection == "Revenue Forecast":
 
     # Load your invoice data from Google Sheets or CSV
     # For now, we'll simulate with a local file
-    df = pd.read_csv("invoices_filtered.csv")
+    worksheet = client.open("Your Spreadsheet Name").worksheet("Invoices")
+    data = worksheet.get_all_records()
+    df = pd.DataFrame(data)
     df['Date created'] = pd.to_datetime(df['Date created'])
     forecast_df = df.groupby('Date created')['Grand total'].sum().reset_index()
     forecast_df.columns = ['ds', 'y']
