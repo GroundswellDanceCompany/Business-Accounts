@@ -16,14 +16,24 @@ if selection == "Invoice Generator":
     
     from docx import Document
 
-def generate_invoice_doc(student_name, date_from, date_to, class_list, extras, total, save_path="generated_invoice.docx"):
-    template_path = "invoice_template.docx"  # adjust path if needed
-    doc = Document(template_path)
+import os
+from datetime import datetime
+from docx import Document
 
-    folder = "Groundswell Dance Company"
+def generate_invoice_doc(student_name, date_from, date_to, class_list, extras, total):
+    # 1. Build target folder
+    folder = os.path.join(os.getcwd(), "Groundswell Dance Company")
     os.makedirs(folder, exist_ok=True)
 
-    # Replace placeholders
+    # 2. Clean file name and full save path
+    safe_name = student_name.replace(" ", "_")
+    filename = f"{safe_name}_{date_from}_to_{date_to}.docx"
+    save_path = os.path.join(folder, filename)
+
+    # 3. Load template and fill it
+    template_path = "invoice_template.docx"
+    doc = Document(template_path)
+
     for paragraph in doc.paragraphs:
         if "{{student_name}}" in paragraph.text:
             paragraph.text = paragraph.text.replace("{{student_name}}", student_name)
