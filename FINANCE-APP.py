@@ -254,8 +254,8 @@ if selection == "Invoice Generator":
         st.session_state.extras = []
 
         if st.button("Create and Send Invoice"):
-        generate_invoice_doc(student_name, class_list, extras, total)
-        handle_invoice_delivery_docx(student_name)
+            generate_invoice_doc(student_name, class_list, extras, total)
+            handle_invoice_delivery_docx(student_name)
         
 elif selection == "Student Manager":
     import streamlit as st
