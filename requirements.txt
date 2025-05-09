@@ -5,3 +5,4 @@ pandas
 python-docx
 scikit-learn
 matplotlib
+openai
