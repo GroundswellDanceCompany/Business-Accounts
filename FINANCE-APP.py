@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Dance School OS", layout="wide")
 
-tabs = ["Invoice Generator", "Student Manager", "Registers", "Accounts Package", "Invoices Dashboard", "Revenue Forecast"]
+tabs = ["Invoice Generator", "Student Manager", "Registers", "Accounts Package", "Invoices Dashboard", "Revenue Forecast", "Ask AI"]
 selection = st.sidebar.radio("Choose View", tabs)
 
 if selection == "Invoice Generator":
@@ -684,6 +684,70 @@ elif selection == "Revenue Forecast":
     # Display chart
     st.header("30-Day Revenue Forecast")
     st.line_chart(full_data.set_index('ds')['y'])
+
+
+elif selection == "Ask AI":
+    st.header("Ask AI About Your Invoices")
+
+    import openai
+    import json
+
+    openai.api_key = st.secrets["openai_api_key"]
+
+    query = st.text_input("Ask something about your invoices (e.g. 'How much did Lily pay in April?')")
+
+    def get_intent_from_gpt(question):
+        prompt = f"""
+You are a helpful assistant for a finance app that tracks invoices.
+Given the user question, return a JSON object describing the intent.
+Use one of these intents:
+- 'total_paid'
+- 'unpaid_invoices'
+- 'list_by_student'
+- 'summary_by_month'
+
+Return relevant fields like 'student', 'month', or 'status'.
+
+User question: '{question}'
+Respond ONLY with valid JSON.
+"""
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.choices[0].message["content"]
+
+    if query:
+        try:
+            parsed = json.loads(get_intent_from_gpt(query))
+            st.json(parsed)
+
+            intent = parsed.get("intent")
+
+            if intent == "total_paid":
+                name = parsed.get("student")
+                result = df[(df["Student"].str.contains(name, case=False)) & (df["Status"] == "Paid")]
+                total = result["Grand total"].sum()
+                st.success(f"{name} has paid £{total:.2f}")
+
+            elif intent == "unpaid_invoices":
+                result = df[df["Status"] == "Unpaid"]
+                st.dataframe(result)
+
+            elif intent == "list_by_student":
+                name = parsed.get("student")
+                result = df[df["Student"].str.contains(name, case=False)]
+                st.dataframe(result)
+
+            elif intent == "summary_by_month":
+                df["Month"] = pd.to_datetime(df["Date created"]).dt.to_period("M")
+                summary = df.groupby("Month")["Grand total"].sum()
+                st.bar_chart(summary)
+
+            else:
+                st.warning("Sorry, I didn’t understand that question.")
+        except Exception as e:
+            st.error(f"Something went wrong: {e}")
 
 
             
