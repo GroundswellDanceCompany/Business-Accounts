@@ -913,6 +913,7 @@ elif selection == "Manager Dashboard":
 
     # --- Local data loader ---
     def load_data():
+        global sheet
         data = sheet.get_all_records()
         df = pd.DataFrame(data)
 
