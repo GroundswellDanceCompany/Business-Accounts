@@ -104,6 +104,7 @@ def show_high_value_invoices(threshold=100):
 
     data = sheet.get_all_records()
     df = pd.DataFrame(data)
+    df = load_data()
 
 if selection == "Invoice Generator":
 
@@ -590,6 +591,14 @@ elif selection == "Invoices Dashboard":
     import pandas as pd
     from oauth2client.service_account import ServiceAccountCredentials
     from datetime import datetime
+
+    def load_data():
+    data = sheet.get_all_records()
+    df = pd.DataFrame(data)
+    df["Date created"] = pd.to_datetime(df["Date created"], errors="coerce")
+    df = df[df["Date created"].notna()]
+    df["Month"] = df["Date created"].dt.to_period("M")
+    return df
     
     # Google Sheets setup
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
