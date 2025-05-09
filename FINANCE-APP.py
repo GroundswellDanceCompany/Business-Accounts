@@ -38,93 +38,32 @@ def generate_invoice_doc(student_name, date_from, date_to, class_list, extras, t
     doc.save(save_path)
     return save_path
 
-def handle_invoice_delivery(student_name="Student", file_docx="generated_invoice.docx"):
-    from docx2pdf import convert
-    from pdf2image import convert_from_path
-    from PIL import Image
+def handle_invoice_delivery_docx(student_name="Student", file_path="generated_invoice.docx"):
+    import os
 
-    # Convert to PDF
-    pdf_path = file_docx.replace(".docx", ".pdf")
-    convert(file_docx, pdf_path)
+    st.markdown("### Preview and Send Invoice")
 
-    # Convert to image
-    images = convert_from_path(pdf_path)
-    image_path = file_docx.replace(".docx", ".jpg")
-    images[0].save(image_path, "JPEG")
+    with open(file_path, "rb") as file:
+        st.download_button(
+            label="Download Invoice for Preview",
+            data=file,
+            file_name=file_path,
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
 
-    st.image(image_path, caption="Invoice Preview", use_column_width=True)
+    phone = st.text_input("Student WhatsApp number (with country code, no spaces)")
+    if phone:
+        whatsapp_url = f"https://wa.me/{phone}"
+        st.markdown(f"[**Open WhatsApp Web**]({whatsapp_url})")
+        st.info("Once WhatsApp opens, manually upload the Word invoice file you previewed.")
 
-    # WhatsApp
-    student_phone = st.text_input("Student WhatsApp number (with country code, no spaces)")
-    if student_phone:
-        whatsapp_url = f"https://wa.me/{student_phone}"
-        st.markdown(f"[**Click here to open WhatsApp Web**]({whatsapp_url})")
-
-    # Email fallback
-    recipient_email = st.text_input("Student email (optional)")
-    if recipient_email:
+    email = st.text_input("Student email (optional)")
+    if email:
         if st.button("Send Invoice via Email"):
             subject = f"Invoice from Groundswell Dance – {student_name}"
-            body_text = f"Hi {student_name},\n\nPlease find attached your invoice for this month's classes.\n\nThank you!"
-            send_email_with_attachment(recipient_email, subject, body_text, image_path)
-            st.success(f"Email sent to {recipient_email}")
-
-def send_email_with_attachment(to, subject, body_text, file_path):
-    from googleapiclient.discovery import build
-    from email.mime.multipart import MIMEMultipart
-    from email.mime.text import MIMEText
-    from email.mime.base import MIMEBase
-    from email import encoders
-    import base64
-    import os
-    import pickle
-    from google_auth_oauthlib.flow import InstalledAppFlow
-    from google.auth.transport.requests import Request
-
-    SCOPES = ['https://www.googleapis.com/auth/gmail.send']
-    creds = None
-
-    if os.path.exists("token.pickle"):
-        with open("token.pickle", "rb") as token:
-            creds = pickle.load(token)
-
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            creds_dict = {
-                "installed": {
-                    "client_id": st.secrets["gmail"]["client_id"],
-                    "project_id": st.secrets["gmail"]["project_id"],
-                    "auth_uri": st.secrets["gmail"]["auth_uri"],
-                    "token_uri": st.secrets["gmail"]["token_uri"],
-                    "auth_provider_x509_cert_url": st.secrets["gmail"]["auth_provider_x509_cert_url"],
-                    "client_secret": st.secrets["gmail"]["client_secret"],
-                    "redirect_uris": [st.secrets["gmail"]["redirect_uri"]]
-                }
-            }
-            flow = InstalledAppFlow.from_client_config(creds_dict, SCOPES)
-            creds = flow.run_local_server(port=0)
-            with open("token.pickle", "wb") as token:
-                pickle.dump(creds, token)
-
-    service = build('gmail', 'v1', credentials=creds)
-
-    message = MIMEMultipart()
-    message['to'] = to
-    message['subject'] = subject
-    message.attach(MIMEText(body_text, 'plain'))
-
-    with open(file_path, "rb") as attachment:
-        part = MIMEBase('application', 'octet-stream')
-        part.set_payload(attachment.read())
-        encoders.encode_base64(part)
-        part.add_header('Content-Disposition', f'attachment; filename="{os.path.basename(file_path)}"')
-        message.attach(part)
-
-    raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
-    body = {'raw': raw}
-    service.users().messages().send(userId="me", body=body).execute()
+            body = f"Hi {student_name},\n\nPlease find attached your invoice for this month's classes.\n\nThanks!"
+            send_email_with_attachment(email, subject, body, file_path)
+            st.success(f"Email sent to {email}")
     
     # Google Sheets setup using Streamlit secrets
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -315,8 +254,8 @@ if selection == "Invoice Generator":
         st.session_state.extras = []
 
         if st.button("Create and Send Invoice"):
-            generate_invoice_doc(...)
-            handle_invoice_delivery(student_name)
+        generate_invoice_doc(student_name, class_list, extras, total)
+        handle_invoice_delivery_docx(student_name)
         
 elif selection == "Student Manager":
     import streamlit as st
