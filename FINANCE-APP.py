@@ -959,20 +959,25 @@ elif selection == "Manager Dashboard":
         filtered = df[df["Grand total"] >= threshold]
         st.dataframe(filtered)
 
-    def send_reminder_email(name, amount):
-        import openai
-        prompt = f"""
-        Write a short, polite payment reminder email to {name}, who owes £{amount:.2f} for dance classes.
-        Keep it friendly and professional. Mention that payment can be made online.
-        """
+    from openai import OpenAI
+
+    def send_reminder_email(student_name, amount):
+        client = OpenAI(api_key=st.secrets["openai_api_key"])
+
         response = client.chat_completions.create(
             model="gpt-4",  # or "gpt-3.5-turbo"
             messages=[
-                {"role": "user", "content": f"Write a polite reminder email to {student_name} for an unpaid invoice of £{amount:.2f}."}
+                {
+                    "role": "user",
+                    "content": f"""Write a friendly payment reminder email to {student_name}, who has an unpaid invoice of £{amount:.2f}.
+                    The message should include:
+                    - A polite tone
+                    - A mention of dance classes
+                    - Encouragement to reach out with any questions."""
+                }
             ]
         )
-        email_text = response.choices[0].message.content
-        
+
         return response.choices[0].message.content
 
     # --- Dashboard sections ---
