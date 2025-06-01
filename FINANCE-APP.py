@@ -962,7 +962,7 @@ elif selection == "Manager Dashboard":
     from openai import OpenAI
 
     def send_reminder_email(student_name, amount):
-        client = OpenAI(api_key=st.secrets["openai_api_key"])
+        client = OpenAI(api_key=st.secrets["openai"]["api_key"])
 
         response = client.chat_completions.create(
             model="gpt-4",  # or "gpt-3.5-turbo"
