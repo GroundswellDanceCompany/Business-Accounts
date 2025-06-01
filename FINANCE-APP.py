@@ -971,6 +971,7 @@ elif selection == "Manager Dashboard":
                 {"role": "user", "content": f"Write a polite reminder email to {student_name} for an unpaid invoice of £{amount:.2f}."}
             ]
         )
+        email_text = response.choices[0].message.content
         
         return response.choices[0].message.content
 
