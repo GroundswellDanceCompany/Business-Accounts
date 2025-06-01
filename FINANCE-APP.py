@@ -960,6 +960,7 @@ elif selection == "Manager Dashboard":
         st.dataframe(filtered)
 
     def send_reminder_email(name, amount):
+        import openai
         prompt = f"""
         Write a short, polite payment reminder email to {name}, who owes £{amount:.2f} for dance classes.
         Keep it friendly and professional. Mention that payment can be made online.
