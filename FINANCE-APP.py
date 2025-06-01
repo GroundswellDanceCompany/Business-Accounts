@@ -965,12 +965,13 @@ elif selection == "Manager Dashboard":
         Write a short, polite payment reminder email to {name}, who owes £{amount:.2f} for dance classes.
         Keep it friendly and professional. Mention that payment can be made online.
         """
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=150,
-            temperature=0.7
+        response = client.chat_completions.create(
+            model="gpt-4",  # or "gpt-3.5-turbo"
+            messages=[
+                {"role": "user", "content": f"Write a polite reminder email to {student_name} for an unpaid invoice of £{amount:.2f}."}
+            ]
         )
+        
         return response.choices[0].message.content
 
     # --- Dashboard sections ---
